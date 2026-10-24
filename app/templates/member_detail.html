@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ member.vorname }} {{ member.name }}{% endblock %}
+{% block content %}
+<h1>{{ member.vorname }} {{ member.name }}
+  {% if not member.agtaktiv %}<span class="badge badge-muted">inaktiv</span>{% endif %}
+</h1>
+
+<div class="detail-grid">
+  <div><span class="label">E-Mail</span><span>{{ member.email or "-" }}</span></div>
+  <div><span class="label">AGT aktiv</span><span>{{ "Ja" if member.agtaktiv else "Nein" }}</span></div>
+  <div><span class="label">PA tauglich</span><span class="{{ 'ok' if member.patauglich else 'nok' }}">{{ "Ja" if member.patauglich else "Nein" }}</span></div>
+  <div><span class="label">CSA tauglich</span><span class="{{ 'ok' if member.csatauglich else 'nok' }}">{{ "Ja" if member.csatauglich else "Nein" }}</span></div>
+  <div><span class="label">AGT Lehrgang</span><span>{{ member.agtlehrgang.strftime("%d.%m.%Y") if member.agtlehrgang else "-" }}</span></div>
+  <div><span class="label">CSA Lehrgang</span><span>{{ member.csalehrgang.strftime("%d.%m.%Y") if member.csalehrgang else "-" }}</span></div>
+  <div><span class="label">Letzte Belastungsübung</span><span>{{ member.lastbelastung.strftime("%d.%m.%Y") if member.lastbelastung else "-" }}</span></div>
+  <div><span class="label">Nächste Belastungsübung</span><span>{{ member.nextbelastung.strftime("%d.%m.%Y") if member.nextbelastung else "-" }}</span></div>
+  <div><span class="label">G26 Ausstellung</span><span>{{ member.g26_ausstellung.strftime("%d.%m.%Y") if member.g26_ausstellung else "-" }}</span></div>
+  <div><span class="label">G26 Ablauf</span><span>{{ member.g26_ablauf.strftime("%d.%m.%Y") if member.g26_ablauf else "-" }}</span></div>
+  <div><span class="label">Letzter AGT Einsatz</span><span>{{ member.lasteinsatz_agt.strftime("%d.%m.%Y") if member.lasteinsatz_agt else "-" }}</span></div>
+  <div><span class="label">Letzter CSA Einsatz</span><span>{{ member.lasteinsatz_csa.strftime("%d.%m.%Y") if member.lasteinsatz_csa else "-" }}</span></div>
+  <div><span class="label">UVV Unterweisung</span><span>{{ member.uvv_unterweisung.strftime("%d.%m.%Y") if member.uvv_unterweisung else "-" }}</span></div>
+</div>
+
+<div class="comment-box">
+  <span class="label">Kommentar</span>
+  <p>{{ member.kommentar or "-" }}</p>
+</div>
+
+{% if user.role.value == "admin" %}
+<div class="actions">
+  <a class="btn" href="/members/{{ member.id }}/edit">Bearbeiten</a>
+  <form method="post" action="/members/{{ member.id }}/toggle_active" style="display:inline">
+    <button type="submit" class="btn-secondary">{{ "Deaktivieren" if member.agtaktiv else "Aktivieren" }}</button>
+  </form>
+  <form method="post" action="/members/{{ member.id }}/delete" style="display:inline" onsubmit="return confirm('Geräteträger {{ member.vorname }} {{ member.name }} wirklich unwiderruflich löschen?');">
+    <button type="submit" class="btn-secondary btn-danger">Löschen</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="login-box">
+  <img src="/static/agent.png" alt="AGENT Logo" class="login-logo">
+  <h1>🧯 AGENT</h1>
+  {% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+  <form method="post" action="/login">
+    <label>Benutzername
+      <input type="text" name="username" required autofocus>
+    </label>
+    <label>Passwort
+      <input type="password" name="password" required>
+    </label>
+    <button type="submit" class="btn">Anmelden</button>
+  </form>
+</div>
+{% endblock %}

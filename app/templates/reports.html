@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Berichte{% endblock %}
+{% block content %}
+<h1>Berichte</h1>
+
+<div class="actions" style="margin-bottom:1.5rem;">
+  <a href="/reports/pdf" class="btn-secondary">📄 Als PDF exportieren</a>
+</div>
+
+<div class="panel full-panel">
+  <h2>G26 läuft in den nächsten 3 Monaten ab <span class="count">{{ expiring|length }}</span></h2>
+  {% if expiring %}
+  <div class="table-wrap">
+  <table class="data-table">
+    <thead><tr><th>Name</th><th>Vorname</th><th>G26 Ablauf</th><th>E-Mail</th></tr></thead>
+    <tbody>
+    {% for m in expiring %}
+      <tr><td><a href="/members/{{ m.id }}">{{ m.name }}</a></td><td>{{ m.vorname }}</td><td>{{ m.g26_ablauf.strftime("%d.%m.%Y") }}</td><td>{{ m.email or "-" }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}<p class="muted">Keine.</p>{% endif %}
+</div>
+
+<div class="panel full-panel">
+  <h2>G26 bereits abgelaufen <span class="count">{{ expired|length }}</span></h2>
+  {% if expired %}
+  <div class="table-wrap">
+  <table class="data-table">
+    <thead><tr><th>Name</th><th>Vorname</th><th>G26 Ablauf</th><th>E-Mail</th></tr></thead>
+    <tbody>
+    {% for m in expired %}
+      <tr><td><a href="/members/{{ m.id }}">{{ m.name }}</a></td><td>{{ m.vorname }}</td><td>{{ m.g26_ablauf.strftime("%d.%m.%Y") }}</td><td>{{ m.email or "-" }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}<p class="muted">Keine.</p>{% endif %}
+</div>
+
+<div class="panel full-panel">
+  <h2>Keine Belastungsübung dieses oder letztes Jahr <span class="count">{{ missing|length }}</span></h2>
+  {% if missing %}
+  <div class="table-wrap">
+  <table class="data-table">
+    <thead><tr><th>Name</th><th>Vorname</th><th>Letzte Belastung</th><th>E-Mail</th></tr></thead>
+    <tbody>
+    {% for m in missing %}
+      <tr><td><a href="/members/{{ m.id }}">{{ m.name }}</a></td><td>{{ m.vorname }}</td><td>{{ m.lastbelastung.strftime("%d.%m.%Y") if m.lastbelastung else "nie" }}</td><td>{{ m.email or "-" }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}<p class="muted">Keine.</p>{% endif %}
+</div>
+
+<div class="panel full-panel">
+  <h2>Keine UVV-Unterweisung dieses/letztes Jahr <span class="count">{{ missing_uvv|length }}</span></h2>
+  {% if missing_uvv %}
+  <div class="table-wrap">
+  <table class="data-table">
+    <thead><tr><th>Name</th><th>Vorname</th><th>Letzte UVV-Unterweisung</th><th>E-Mail</th></tr></thead>
+    <tbody>
+    {% for m in missing_uvv %}
+      <tr><td><a href="/members/{{ m.id }}">{{ m.name }}</a></td><td>{{ m.vorname }}</td><td>{{ m.uvv_unterweisung.strftime("%d.%m.%Y") if m.uvv_unterweisung else "nie" }}</td><td>{{ m.email or "-" }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}<p class="muted">Keine.</p>{% endif %}
+</div>
+{% endblock %}

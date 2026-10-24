@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Zwei-Faktor-Authentifizierung{% endblock %}
+{% block content %}
+<div class="login-box">
+  <img src="/static/agent.png" alt="AGENT Logo" class="login-logo">
+  <h1>🧯 AGENT</h1>
+  {% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+  <form method="post" action="/login/2fa">
+    <label>Code aus der Authenticator-App
+      <input type="text" name="code" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" required autofocus>
+    </label>
+    <button type="submit" class="btn">Bestätigen</button>
+  </form>
+</div>
+{% endblock %}

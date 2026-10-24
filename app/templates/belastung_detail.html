@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Termin {{ termin.datum.strftime("%d.%m.%Y") }}{% endblock %}
+{% block content %}
+<h1>Termin {{ termin.datum.strftime("%d.%m.%Y") }}</h1>
+
+<div class="detail-grid">
+  <div><span class="label">Datum</span><span>{{ termin.datum.strftime("%d.%m.%Y") }}</span></div>
+  <div><span class="label">Uhrzeit</span><span>{{ termin.uhrzeit or "-" }}</span></div>
+  <div><span class="label">Ort</span><span>{{ termin.ort or "-" }}</span></div>
+</div>
+{% if termin.bemerkung %}
+<div class="comment-box">
+  <span class="label">Bemerkung</span>
+  <p>{{ termin.bemerkung }}</p>
+</div>
+{% endif %}
+
+<div class="panel-grid">
+  <div class="panel">
+    <h2>Sicher <span class="count">{{ sicher|length }}/{{ sicher_limit }}</span></h2>
+    {% if sicher %}
+    <table class="mini-table">
+      {% for t in sicher %}
+      <tr>
+        <td><a href="/members/{{ t.member.id }}">{{ t.member.vorname }} {{ t.member.name }}</a></td>
+        <td style="text-align:right;">
+        {% if user.role.value == "admin" %}
+          <form method="post" action="/belastung/termin/{{ termin.id }}/unassign/{{ t.member.id }}" style="display:inline">
+            <button type="submit" class="btn-secondary">Entfernen</button>
+          </form>
+        {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}<p class="muted">Keine.</p>{% endif %}
+
+    {% if user.role.value == "admin" and sicher|length < sicher_limit and available %}
+    <form method="post" action="/belastung/termin/{{ termin.id }}/assign" class="actions" style="margin-top:1rem;">
+      <input type="hidden" name="status" value="sicher">
+      <select name="member_id" required>
+        {% for m in available %}
+        <option value="{{ m.id }}">{{ m.vorname }} {{ m.name }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn-secondary">Als sicher hinzufügen</button>
+    </form>
+    {% endif %}
+  </div>
+
+  <div class="panel">
+    <h2>Auf Rückfrage <span class="count">{{ rueckfrage|length }}/{{ rueckfrage_limit }}</span></h2>
+    {% if rueckfrage %}
+    <table class="mini-table">
+      {% for t in rueckfrage %}
+      <tr>
+        <td><a href="/members/{{ t.member.id }}">{{ t.member.vorname }} {{ t.member.name }}</a></td>
+        <td style="text-align:right;">
+        {% if user.role.value == "admin" %}
+          <form method="post" action="/belastung/termin/{{ termin.id }}/unassign/{{ t.member.id }}" style="display:inline">
+            <button type="submit" class="btn-secondary">Entfernen</button>
+          </form>
+        {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}<p class="muted">Keine.</p>{% endif %}
+
+    {% if user.role.value == "admin" and rueckfrage|length < rueckfrage_limit and available %}
+    <form method="post" action="/belastung/termin/{{ termin.id }}/assign" class="actions" style="margin-top:1rem;">
+      <input type="hidden" name="status" value="rueckfrage">
+      <select name="member_id" required>
+        {% for m in available %}
+        <option value="{{ m.id }}">{{ m.vorname }} {{ m.name }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn-secondary">Auf Rückfrage hinzufügen</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<p class="muted">Bei Zuweisung wird "Nächste Belastungsübung" beim AGT automatisch auf dieses Datum gesetzt. Nach Ablauf des Termins wandert es automatisch zu "Letzte Belastungsübung". Wird eine Zuweisung entfernt, muss "Nächste Belastungsübung" bei Bedarf manuell im Geräteträger-Formular korrigiert werden.</p>
+
+<div class="actions">
+  <a href="/belastung/jahr/{{ termin.datum.year }}" class="btn-secondary">Zurück zur Übersicht</a>
+</div>
+{% endblock %}

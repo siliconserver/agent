@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}2FA einrichten{% endblock %}
+{% block content %}
+<h1>Zwei-Faktor-Authentifizierung einrichten</h1>
+
+<section class="panel full-panel">
+  <p>1. QR-Code mit der Authenticator-App scannen (oder den Schlüssel manuell eingeben):</p>
+  <div style="max-width:220px; background:white; padding:0.8rem; border-radius:var(--radius); margin-bottom:1rem;">
+    {{ qr_svg | safe }}
+  </div>
+  <p class="muted">Manueller Schlüssel: <code>{{ secret }}</code></p>
+
+  <p style="margin-top:1.5rem;">2. Code aus der App eingeben, um die Einrichtung zu bestätigen:</p>
+  <form method="post" action="/profile/2fa/setup" class="form-grid">
+    <label>Code aus der Authenticator-App
+      <input type="text" name="code" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" required autofocus>
+    </label>
+    <div class="full actions">
+      <button type="submit" class="btn">Bestätigen &amp; aktivieren</button>
+      <a href="/profile" class="btn-secondary">Abbrechen</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

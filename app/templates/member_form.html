@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ "Bearbeiten" if member else "Neuer Geräteträger" }}{% endblock %}
+{% block content %}
+<h1>{{ "Bearbeiten: " ~ member.vorname ~ " " ~ member.name if member else "Neuer Geräteträger" }}</h1>
+<form method="post" action="{{ '/members/%d/edit' % member.id if member else '/members/new' }}" class="form-grid">
+  <label>Name<input type="text" name="name" value="{{ member.name if member else '' }}" required></label>
+  <label>Vorname<input type="text" name="vorname" value="{{ member.vorname if member else '' }}" required></label>
+  <label>E-Mail<input type="email" name="email" value="{{ member.email if member else '' }}"></label>
+
+  <label>AGT Lehrgang<input type="date" name="agtlehrgang" value="{{ member.agtlehrgang if member and member.agtlehrgang else '' }}"></label>
+  <label>CSA Lehrgang<input type="date" name="csalehrgang" value="{{ member.csalehrgang if member and member.csalehrgang else '' }}"></label>
+
+  <label>Letzte Belastungsübung<input type="date" name="lastbelastung" value="{{ member.lastbelastung if member and member.lastbelastung else '' }}"></label>
+  <label>Nächste Belastungsübung<input type="date" name="nextbelastung" value="{{ member.nextbelastung if member and member.nextbelastung else '' }}"></label>
+
+  <label>G26 Ausstellung<input type="date" name="g26_ausstellung" value="{{ member.g26_ausstellung if member and member.g26_ausstellung else '' }}"></label>
+  <label>G26 Ablauf<input type="date" name="g26_ablauf" value="{{ member.g26_ablauf if member and member.g26_ablauf else '' }}"></label>
+
+  <label>Letzter AGT Einsatz<input type="date" name="lasteinsatz_agt" value="{{ member.lasteinsatz_agt if member and member.lasteinsatz_agt else '' }}"></label>
+  <label>Letzter CSA Einsatz<input type="date" name="lasteinsatz_csa" value="{{ member.lasteinsatz_csa if member and member.lasteinsatz_csa else '' }}"></label>
+
+  <label>UVV Unterweisung<input type="date" name="uvv_unterweisung" value="{{ member.uvv_unterweisung if member and member.uvv_unterweisung else '' }}"></label>
+
+  <label class="checkbox"><input type="checkbox" name="csatauglich" {{ "checked" if member and member.csatauglich }}> CSA tauglich</label>
+  <label class="checkbox"><input type="checkbox" name="agtaktiv" {{ "checked" if not member or member.agtaktiv }}> AGT aktiv</label>
+
+  <label class="full">Kommentar<textarea name="kommentar" rows="4">{{ member.kommentar if member else '' }}</textarea></label>
+
+  <p class="muted full">Hinweis: "PA tauglich" wird automatisch anhand von G26-Ablauf, letzter Belastungsübung und letzter UVV-Unterweisung (jeweils aktuelles oder letztes Kalenderjahr) berechnet und beim Speichern sowie im konfigurierten Zeitplan neu bestimmt.</p>
+
+  <div class="full actions">
+    <button type="submit" class="btn">Speichern</button>
+    <a href="{{ '/members/%d' % member.id if member else '/members' }}" class="btn-secondary">Abbrechen</a>
+  </div>
+</form>
+{% endblock %}
