@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Profil{% endblock %}
+{% block content %}
+<h1>Profil</h1>
+
+<section class="panel full-panel">
+  <h2>Zwei-Faktor-Authentifizierung</h2>
+  {% if user.totp_enabled %}
+  <p><span class="badge" style="background:rgba(63,185,80,0.15); color:var(--good);">Aktiviert</span></p>
+  <form method="post" action="/profile/2fa/disable" class="form-grid" onsubmit="return confirm('Zwei-Faktor-Authentifizierung wirklich deaktivieren?');">
+    <label class="full">Aktuelles Passwort zur Bestätigung
+      <input type="password" name="current_password" required autocomplete="current-password">
+    </label>
+    <div class="full actions">
+      <button type="submit" class="btn-secondary btn-danger">2FA deaktivieren</button>
+    </div>
+  </form>
+  {% else %}
+  <p class="muted">Nicht aktiviert. Mit einer Authenticator-App (z. B. Google Authenticator, Authy) einrichten.</p>
+  <div class="actions">
+    <a href="/profile/2fa/setup" class="btn">2FA einrichten</a>
+  </div>
+  {% endif %}
+</section>
+
+<section class="panel full-panel">
+  <h2>Passwort ändern</h2>
+  <form method="post" action="/profile/password" class="form-grid">
+    <label>Aktuelles Passwort<input type="password" name="current_password" required autocomplete="current-password"></label>
+    <label>Neues Passwort<input type="password" name="new_password" required minlength="8" autocomplete="new-password"></label>
+    <label>Neues Passwort wiederholen<input type="password" name="new_password_confirm" required minlength="8" autocomplete="new-password"></label>
+    <div class="full actions">
+      <button type="submit" class="btn">Passwort ändern</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

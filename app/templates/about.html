@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Über AGENT{% endblock %}
+{% block content %}
+<h1>Über AGENT</h1>
+
+<section class="panel full-panel" style="text-align:center;">
+  <img src="/static/agent.png" alt="AGENT Logo" style="max-width:220px; max-height:220px; margin-bottom:1rem;">
+  <p style="font-size:1.05rem;">
+    <strong>AGENT</strong> = <strong>A</strong>temschutz-<strong>G</strong>eräteträger-<strong>E</strong>ignungs- &amp; <strong>N</strong>achweis-<strong>T</strong>ool
+  </p>
+</section>
+
+<section class="panel full-panel">
+  <h2>Projekt auf GitHub</h2>
+  <ul>
+    <li><a href="https://github.com/siliconserver/agent" target="_blank" rel="noopener">Quellcode und README</a></li>
+    <li><a href="https://github.com/siliconserver/agent/issues" target="_blank" rel="noopener">Fehler melden oder Wunsch äußern (Issues)</a></li>
+    <li><a href="https://github.com/siliconserver/agent/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog auf GitHub</a></li>
+  </ul>
+</section>
+
+<section class="panel full-panel">
+  <h2>Version {{ APP_VERSION }}</h2>
+  <h3>Changelog</h3>
+  {% for entry in CHANGELOG %}
+  <h4>Version {{ entry.version }}{% if entry.date %} <small>({{ entry.date }})</small>{% endif %}</h4>
+  <ul>
+    {% for item in entry["items"] %}<li>{{ item }}</li>{% endfor %}
+  </ul>
+  {% else %}
+  <p>Kein Changelog vorhanden.</p>
+  {% endfor %}
+</section>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Belastungsübung {{ year }}{% endblock %}
+{% block content %}
+<h1>
+  Belastungsübung {{ year }}
+  {% if years %}
+  <span class="muted" style="font-size:0.9rem; display:flex; gap:0.4rem;">
+    {% for y in years %}
+    <a href="/belastung/jahr/{{ y }}" class="badge badge-muted">{{ y }}</a>
+    {% endfor %}
+  </span>
+  {% endif %}
+</h1>
+
+<div class="actions" style="margin-bottom:1.5rem;">
+  <a href="{{ '/belastung/pdf' if year == now_year else '/belastung/jahr/%d/pdf' % year }}" class="btn-secondary">📄 Als PDF exportieren</a>
+  {% if user.role.value == "admin" %}
+  <a href="/belastung/termin/new" class="btn">+ Neuer Termin</a>
+  {% endif %}
+</div>
+
+{% if termine %}
+{% for termin in termine %}
+<div class="panel full-panel">
+  <h2>
+    {{ termin.datum.strftime("%d.%m.%Y") }}{% if termin.uhrzeit %}, {{ termin.uhrzeit }} Uhr{% endif %}{% if termin.ort %} – {{ termin.ort }}{% endif %}
+    <span class="count">{{ termin.sicher|length }}/{{ sicher_limit }} sicher · {{ termin.rueckfrage|length }}/{{ rueckfrage_limit }} Rückfrage</span>
+  </h2>
+  {% if termin.bemerkung %}<p class="muted">{{ termin.bemerkung }}</p>{% endif %}
+
+  <div class="panel-grid">
+    <div>
+      <h3>Sicher</h3>
+      {% if termin.sicher %}
+      <table class="mini-table">
+        {% for t in termin.sicher %}
+        <tr><td><a href="/members/{{ t.member.id }}">{{ t.member.vorname }} {{ t.member.name }}</a></td><td>Sicher</td></tr>
+        {% endfor %}
+      </table>
+      {% else %}<p class="muted">Keine.</p>{% endif %}
+    </div>
+    <div>
+      <h3>Auf Rückfrage</h3>
+      {% if termin.rueckfrage %}
+      <table class="mini-table">
+        {% for t in termin.rueckfrage %}
+        <tr><td><a href="/members/{{ t.member.id }}">{{ t.member.vorname }} {{ t.member.name }}</a></td><td>Rückfrage</td></tr>
+        {% endfor %}
+      </table>
+      {% else %}<p class="muted">Keine.</p>{% endif %}
+    </div>
+  </div>
+
+  <div class="actions">
+    <a href="/belastung/termin/{{ termin.id }}" class="btn-secondary">Zuweisen / Details</a>
+    {% if user.role.value == "admin" %}
+    <a href="/belastung/termin/{{ termin.id }}/edit" class="btn-secondary">Bearbeiten</a>
+    <form method="post" action="/belastung/termin/{{ termin.id }}/delete" onsubmit="return confirm('Termin vom {{ termin.datum.strftime('%d.%m.%Y') }} wirklich löschen?');" style="display:inline">
+      <button type="submit" class="btn-secondary">Löschen</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}
+{% else %}
+<p class="muted">Keine Termine in {{ year }}.</p>
+{% endif %}
+{% endblock %}

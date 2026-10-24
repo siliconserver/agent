@@ -1,0 +1,68 @@
+# Baut das Docker-Image und legt es in der GitHub Container Registry ab
+# (ghcr.io/siliconserver/agent).
+#  - Push auf main:    Tags :main und :sha-<commit>
+#  - Aufruf aus release.yml mit Version: zusätzlich :<Version> (z.B. :1.4) und :latest
+# Tags, die release.yml mit dem GITHUB_TOKEN anlegt, lösen keine weiteren Workflows aus,
+# deshalb ruft release.yml diesen Workflow direkt auf (workflow_call).
+name: Docker-Image
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      version:
+        description: Release-Version (z.B. 1.4), leer für einen main-Build
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: docker-${{ inputs.version || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Tags festlegen
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=main,enable=${{ inputs.version == '' && github.ref == 'refs/heads/main' }}
+            type=sha,format=short
+            type=raw,value=${{ inputs.version }},enable=${{ inputs.version != '' }}
+            type=raw,value=latest,enable=${{ inputs.version != '' }}
+          labels: |
+            org.opencontainers.image.title=AGENT
+            org.opencontainers.image.version=${{ inputs.version || 'main' }}
+
+      - name: Bauen und hochladen
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

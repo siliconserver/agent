@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-value">{{ stats.total }}</div>
+    <div class="stat-label">AGT insgesamt</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ stats.active }} <span class="stat-pct">({{ stats.active_pct }}%)</span></div>
+    <div class="stat-label">AGT aktiv</div>
+  </div>
+  <div class="stat-card good">
+    <div class="stat-value">{{ stats.tauglich }} <span class="stat-pct">({{ stats.tauglich_pct }}%)</span></div>
+    <div class="stat-label">davon tauglich</div>
+  </div>
+  <div class="stat-card bad">
+    <div class="stat-value">{{ stats.untauglich }} <span class="stat-pct">({{ stats.untauglich_pct }}%)</span></div>
+    <div class="stat-label">davon untauglich</div>
+  </div>
+</div>
+
+<div class="panel-grid">
+  <div class="panel">
+    <h2>G26 läuft in 3 Monaten ab <span class="count">{{ expiring|length }}</span></h2>
+    {% if expiring %}
+    <table class="mini-table">
+      {% for m in expiring %}
+      <tr><td><a href="/members/{{ m.id }}">{{ m.vorname }} {{ m.name }}</a></td><td>{{ m.g26_ablauf.strftime("%d.%m.%Y") }}</td></tr>
+      {% endfor %}
+    </table>
+    {% else %}<p class="muted">Keine.</p>{% endif %}
+  </div>
+
+  <div class="panel">
+    <h2>G26 bereits abgelaufen <span class="count">{{ expired|length }}</span></h2>
+    {% if expired %}
+    <table class="mini-table">
+      {% for m in expired %}
+      <tr><td><a href="/members/{{ m.id }}">{{ m.vorname }} {{ m.name }}</a></td><td>{{ m.g26_ablauf.strftime("%d.%m.%Y") }}</td></tr>
+      {% endfor %}
+    </table>
+    {% else %}<p class="muted">Keine.</p>{% endif %}
+  </div>
+
+  <div class="panel">
+    <h2>Keine Belastungsübung dieses/letztes Jahr <span class="count">{{ missing|length }}</span></h2>
+    {% if missing %}
+    <table class="mini-table">
+      {% for m in missing %}
+      <tr><td><a href="/members/{{ m.id }}">{{ m.vorname }} {{ m.name }}</a></td><td>{{ m.lastbelastung.strftime("%d.%m.%Y") if m.lastbelastung else "nie" }}</td></tr>
+      {% endfor %}
+    </table>
+    {% else %}<p class="muted">Keine.</p>{% endif %}
+  </div>
+
+  <div class="panel">
+    <h2>Keine UVV-Unterweisung dieses/letztes Jahr <span class="count">{{ missing_uvv|length }}</span></h2>
+    {% if missing_uvv %}
+    <table class="mini-table">
+      {% for m in missing_uvv %}
+      <tr><td><a href="/members/{{ m.id }}">{{ m.vorname }} {{ m.name }}</a></td><td>{{ m.uvv_unterweisung.strftime("%d.%m.%Y") if m.uvv_unterweisung else "nie" }}</td></tr>
+      {% endfor %}
+    </table>
+    {% else %}<p class="muted">Keine.</p>{% endif %}
+  </div>
+
+  <div class="panel">
+    <h2>AGT tauglich <span class="count">{{ tauglich|length }}</span></h2>
+    {% if tauglich %}
+    <table class="mini-table">
+      {% for m in tauglich %}
+      <tr><td><a href="/members/{{ m.id }}">{{ m.vorname }} {{ m.name }}</a></td><td>Tauglich</td></tr>
+      {% endfor %}
+    </table>
+    {% else %}<p class="muted">Keine.</p>{% endif %}
+  </div>
+
+  <div class="panel">
+    <h2>AGT untauglich <span class="count">{{ untauglich|length }}</span></h2>
+    {% if untauglich %}
+    <table class="mini-table">
+      {% for m in untauglich %}
+      <tr><td><a href="/members/{{ m.id }}">{{ m.vorname }} {{ m.name }}</a></td><td>Untauglich</td></tr>
+      {% endfor %}
+    </table>
+    {% else %}<p class="muted">Keine.</p>{% endif %}
+  </div>
+</div>
+
+<div class="actions" style="margin-top:2rem; flex-wrap:wrap;">
+  <a href="/reports/pdf" class="btn-secondary">📄 Berichte als PDF</a>
+  <a href="/members/export.csv" class="btn-secondary">⬇️ Daten als CSV</a>
+</div>
+
+{% if user.role.value == "admin" %}
+<div class="actions" style="margin-top:0.8rem; flex-wrap:wrap;">
+  <form method="post" action="/admin/run-tauglichkeit-check">
+    <button type="submit" class="btn-secondary">Tauglichkeitsprüfung jetzt manuell ausführen</button>
+  </form>
+  <form method="post" action="/admin/run-send-emails">
+    <button type="submit" class="btn-secondary">Erinnerungsmails jetzt manuell versenden</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

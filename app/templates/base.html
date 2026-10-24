@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>{% block title %}AGENT{% endblock %}</title>
+<link rel="stylesheet" href="/static/style.css">
+
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#16181d">
+<link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AGENT">
+</head>
+<body>
+{% if user %}
+<nav class="navbar">
+  <div class="nav-brand">🧯 AGENT</div>
+  <div class="nav-links">
+    <a href="/">Dashboard</a>
+    <a href="/members">Geräteträger</a>
+    <a href="/belastung">Belastungsübung</a>
+    <a href="/reports">Berichte</a>
+    {% if user.role.value == "admin" %}
+    <div class="nav-dropdown">
+      <a href="/members/new">+ Neu</a>
+      <div class="nav-dropdown-menu">
+        <a href="/members/new">AGT</a>
+        <a href="/belastung/termin/new">Belastungsübung</a>
+      </div>
+    </div>
+    <a href="/settings">Einstellungen</a>
+    {% endif %}
+  </div>
+  <div class="nav-user">
+    <div class="nav-dropdown">
+      <span>{{ user.username }} <span class="role-badge">{{ user.role.value }}</span></span>
+      <div class="nav-dropdown-menu">
+        <a href="/profile">Profil</a>
+      </div>
+    </div>
+    <a href="/logout" class="logout">Logout</a>
+  </div>
+</nav>
+{% endif %}
+<main class="container">
+{% if request.query_params.get("msg") %}
+<div class="alert alert-info">{{ MESSAGES.get(request.query_params.get("msg"), request.query_params.get("msg")) }}</div>
+{% endif %}
+{% block content %}{% endblock %}
+</main>
+<footer class="footer">
+  <a href="/about">Über AGENT</a>
+  <span>Version {{ APP_VERSION }}</span>
+  <span>© Christian Baumann</span>
+  {% if IMPRESSUM_URL %}<a href="{{ IMPRESSUM_URL }}" target="_blank" rel="noopener">Impressum</a>{% endif %}
+  {% if DATENSCHUTZ_URL %}<a href="{{ DATENSCHUTZ_URL }}" target="_blank" rel="noopener">Datenschutzerklärung</a>{% endif %}
+</footer>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("/sw.js").catch(function () {});
+  });
+}
+
+// Dropdown-Menüs (+Neu, Profil) per Hover UND per Tap bedienbar machen –
+// ohne Maus-Hover (Handy/Tablet) wäre z.B. das Profil-Menü sonst gar
+// nicht erreichbar, da sein Auslöser kein eigener Link ist.
+document.querySelectorAll(".nav-dropdown").forEach(function (dropdown) {
+  var trigger = dropdown.querySelector(":scope > a, :scope > span");
+  if (!trigger) return;
+  trigger.addEventListener("click", function (e) {
+    var isOpen = dropdown.classList.contains("open");
+    if (trigger.tagName === "A" && !isOpen) {
+      e.preventDefault();
+    }
+    document.querySelectorAll(".nav-dropdown.open").forEach(function (d) {
+      if (d !== dropdown) d.classList.remove("open");
+    });
+    dropdown.classList.toggle("open");
+  });
+});
+document.addEventListener("click", function (e) {
+  document.querySelectorAll(".nav-dropdown.open").forEach(function (d) {
+    if (!d.contains(e.target)) d.classList.remove("open");
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Geräteträger{% endblock %}
+{% block content %}
+<h1>Geräteträger <span class="count">{{ members|length }}</span></h1>
+
+<div class="actions" style="margin-bottom:1rem;">
+  <a href="/members/export.csv" class="btn-secondary">⬇️ Als CSV exportieren</a>
+  <button type="button" id="toggle-inactive-btn" class="btn-secondary">Inaktive ausblenden</button>
+</div>
+
+<div class="table-wrap">
+<table class="data-table" id="members-table">
+  <thead>
+    <tr>
+      <th class="sortable" data-sort="text">Name</th>
+      <th class="sortable" data-sort="text">Vorname</th>
+      <th class="sortable" data-sort="bool">PA tauglich</th>
+      <th class="sortable" data-sort="bool">CSA tauglich</th>
+      <th class="sortable" data-sort="date">G26 bis</th>
+      <th class="sortable" data-sort="date">UVV Unterweisung</th>
+      <th class="sortable" data-sort="date">Letzte Belastung</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for m in members %}
+    <tr class="{{ 'inactive' if not m.agtaktiv }}">
+      <td data-value="{{ m.name|lower }}">{{ m.name }}</td>
+      <td data-value="{{ m.vorname|lower }}">{{ m.vorname }}</td>
+      <td data-value="{{ 1 if m.patauglich else 0 }}">{{ "✅" if m.patauglich else "❌" }}</td>
+      <td data-value="{{ 1 if m.csatauglich else 0 }}">{{ "✅" if m.csatauglich else "❌" }}</td>
+      <td data-value="{{ m.g26_ablauf.isoformat() if m.g26_ablauf else '' }}">{{ m.g26_ablauf.strftime("%d.%m.%Y") if m.g26_ablauf else "-" }}</td>
+      <td data-value="{{ m.uvv_unterweisung.isoformat() if m.uvv_unterweisung else '' }}">{{ m.uvv_unterweisung.strftime("%d.%m.%Y") if m.uvv_unterweisung else "-" }}</td>
+      <td data-value="{{ m.lastbelastung.isoformat() if m.lastbelastung else '' }}">{{ m.lastbelastung.strftime("%d.%m.%Y") if m.lastbelastung else "-" }}</td>
+      <td><a href="/members/{{ m.id }}">Details →</a></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" class="muted">Noch keine Geräteträger angelegt.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<script>
+(function () {
+  var table = document.getElementById("members-table");
+  if (!table) return;
+  var tbody = table.tBodies[0];
+  var headers = table.querySelectorAll("th.sortable");
+
+  headers.forEach(function (th, index) {
+    th.addEventListener("click", function () {
+      var ascending = th.dataset.sortDir !== "asc";
+      headers.forEach(function (h) {
+        delete h.dataset.sortDir;
+        h.classList.remove("sorted-asc", "sorted-desc");
+      });
+      th.dataset.sortDir = ascending ? "asc" : "desc";
+      th.classList.add(ascending ? "sorted-asc" : "sorted-desc");
+
+      var type = th.dataset.sort;
+      var rows = Array.prototype.slice.call(tbody.querySelectorAll("tr"));
+      rows.sort(function (rowA, rowB) {
+        var cellA = rowA.cells[index];
+        var cellB = rowB.cells[index];
+        if (!cellA || !cellB) return 0;
+        var a = cellA.dataset.value || "";
+        var b = cellB.dataset.value || "";
+        var cmp;
+        if (type === "bool") {
+          cmp = Number(a) - Number(b);
+        } else {
+          cmp = a.localeCompare(b, "de");
+        }
+        return ascending ? cmp : -cmp;
+      });
+      rows.forEach(function (row) {
+        tbody.appendChild(row);
+      });
+    });
+  });
+})();
+
+(function () {
+  var btn = document.getElementById("toggle-inactive-btn");
+  var table = document.getElementById("members-table");
+  if (!btn || !table) return;
+  var STORAGE_KEY = "agt_members_hide_inactive";
+
+  function applyState(hide) {
+    table.classList.toggle("hide-inactive", hide);
+    btn.textContent = hide ? "Inaktive einblenden" : "Inaktive ausblenden";
+  }
+
+  var hidden = false;
+  try {
+    hidden = localStorage.getItem(STORAGE_KEY) === "1";
+  } catch (e) {}
+  applyState(hidden);
+
+  btn.addEventListener("click", function () {
+    hidden = !hidden;
+    applyState(hidden);
+    try {
+      localStorage.setItem(STORAGE_KEY, hidden ? "1" : "0");
+    } catch (e) {}
+  });
+})();
+</script>
+{% endblock %}

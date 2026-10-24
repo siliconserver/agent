@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ "Termin bearbeiten" if termin else "Neuer Termin" }}{% endblock %}
+{% block content %}
+<h1>{{ "Termin bearbeiten: " ~ termin.datum.strftime("%d.%m.%Y") if termin else "Neuer Belastungsübung-Termin" }}</h1>
+<form method="post" action="{{ '/belastung/termin/%d/edit' % termin.id if termin else '/belastung/termin/new' }}" class="form-grid">
+  <label>Datum<input type="date" name="datum" value="{{ termin.datum if termin and termin.datum else '' }}" required></label>
+  <label>Uhrzeit<input type="time" name="uhrzeit" value="{{ termin.uhrzeit if termin and termin.uhrzeit else '' }}"></label>
+  <label>Ort<input type="text" name="ort" value="{{ termin.ort if termin and termin.ort else '' }}"></label>
+
+  <label class="full">Bemerkung<textarea name="bemerkung" rows="3">{{ termin.bemerkung if termin else '' }}</textarea></label>
+
+  <div class="full actions">
+    <button type="submit" class="btn">Speichern</button>
+    <a href="{{ '/belastung/termin/%d' % termin.id if termin else '/belastung' }}" class="btn-secondary">Abbrechen</a>
+  </div>
+</form>
+{% endblock %}

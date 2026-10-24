@@ -1,0 +1,15 @@
+# Zugangsdaten und Passwörter – niemals committen
+.env
+.env.*
+!.env.example
+
+# Persistente Daten (Datenbank + Backups)
+data/
+
+# Lokale Anpassungen
+docker-compose.override.yml
+
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
