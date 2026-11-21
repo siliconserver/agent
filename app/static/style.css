@@ -296,6 +296,51 @@ code {
 .settings-nav a { color: var(--text-muted); font-size: 0.9rem; }
 .settings-nav a:hover { color: var(--accent); }
 
+/* Mouseover-Hilfe (Dashboard, Berichte): Hover am PC, Antippen am Handy */
+/* Die Sprechblase richtet sich an der Überschrift aus (nicht am Symbol),
+   damit sie am rechten oder linken Rand nicht aus dem Bild läuft. */
+h2:has(> .help), .stat-label { position: relative; }
+.help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  border: 1px solid var(--text-muted);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: help;
+  flex-shrink: 0;
+}
+.help:hover, .help:focus { color: var(--text); border-color: var(--text); outline: none; }
+.help::after {
+  content: attr(data-help);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  padding: 0.5rem 0.7rem;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: left;
+  white-space: normal;
+  z-index: 50;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.12s;
+  pointer-events: none;
+}
+.help:hover::after, .help:focus::after { visibility: visible; opacity: 1; }
+.stat-label { display: flex; align-items: center; gap: 0.4rem; }
+
 /* ToDo */
 .todo-board {
   display: grid;

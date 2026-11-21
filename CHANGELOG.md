@@ -8,6 +8,12 @@ Diese Datei wird auch auf der Seite „Über AGENT“ angezeigt; die oberste Ver
 - Status „ToDo“, „In Arbeit“ und „Erledigt“ als drei Spalten, Wechsel per Klick; erledigte Einträge verschwinden einen Tag nach dem Erledigen aus der Liste
 - Das Dashboard weist auf offene ToDos hin
 
+## 2.1.1 (2026-11-21)
+- Dashboard und Wochenreport: Der Bericht heißt jetzt „UVV / Belastungsübung läuft zum 31.12. ab“ und nennt pro AGT, ob UVV oder Belastungsübung abläuft und von wann sie ist
+- „Keine Belastungsübung dieses/letztes Jahr“ heißt jetzt „Ohne gültige Belastungsübung“, „Keine UVV-Unterweisung dieses/letztes Jahr“ heißt „Ohne gültige UVV-Unterweisung“ (Dashboard, Berichte, PDF, Wochenreport)
+- Hilfe-Symbol (?) an allen Kennzahlen und Listen im Dashboard und unter Berichte: Beim Drüberfahren mit der Maus oder Antippen am Handy steht dort, was genau geprüft und angezeigt wird
+- Berichte-Seite: Der Abschnitt „läuft zum 31.12. ab“ stand doppelt und einmal fälschlich im Seitentitel
+
 ## 2.1 (2026-11-21)
 - Fristregel für UVV-Unterweisung und Belastungsübung vereinheitlicht: „jährlich“ heißt einmal pro Kalenderjahr. Ein Nachweis gilt im Jahr, in dem er absolviert wurde, und im ganzen folgenden Jahr (UVV am 25.10.2026 → gültig bis 31.12.2027). Fehlt ein Datum, ist der AGT untauglich
 - Die Prüfung steckt an einer zentralen Stelle und wird überall gleich verwendet: täglicher Tauglichkeitslauf, Dashboard, Geräteträger-Liste, Berichte, PDF-/CSV-Export und Wochenreport

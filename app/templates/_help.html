@@ -1,0 +1,20 @@
+{# Mouseover-Hilfen für Dashboard und Berichte. Einbinden mit
+   {% import "_help.html" as help with context %} und {{ help.icon("key") }}.
+   Braucht die Variable `today` im Template-Kontext. #}
+{% set y = today.year %}
+{% set texts = {
+  "total": "Alle angelegten Geräteträger, aktive und inaktive.",
+  "active": "Geräteträger mit Haken „AGT aktiv“. Der Prozentwert bezieht sich auf alle angelegten Geräteträger. Inaktive AGT zählen in keiner der Listen unten.",
+  "tauglich": "Aktive AGT, die PA-tauglich sind: G26 gültig UND letzte Belastungsübung aus " ~ y ~ " oder " ~ (y - 1) ~ " UND letzte UVV-Unterweisung aus " ~ y ~ " oder " ~ (y - 1) ~ ". Prozent bezogen auf die aktiven AGT. Stand der letzten Tauglichkeitsprüfung (täglich und beim Speichern eines AGT).",
+  "untauglich": "Aktive AGT, bei denen mindestens eine Bedingung fehlt: G26 abgelaufen oder nicht eingetragen, keine gültige Belastungsübung oder keine gültige UVV-Unterweisung. Prozent bezogen auf die aktiven AGT.",
+  "g26_expiring": "Aktive AGT, deren G26 heute oder in den nächsten 90 Tagen abläuft. Angezeigt wird das Ablaufdatum. Diese AGT bekommen eine Erinnerungsmail.",
+  "g26_expired": "Aktive AGT, deren eingetragenes G26-Ablaufdatum vor heute liegt. Angezeigt wird das Ablaufdatum. AGT ganz ohne G26-Datum stehen hier nicht, sind aber trotzdem untauglich.",
+  "missing_belastung": "Aktive AGT, deren letzte Belastungsübung fehlt oder nicht aus " ~ y ~ " oder " ~ (y - 1) ~ " stammt. Angezeigt wird das Datum der letzten Übung oder „nie“. Diese AGT sind untauglich.",
+  "missing_uvv": "Aktive AGT, deren letzte UVV-Unterweisung fehlt oder nicht aus " ~ y ~ " oder " ~ (y - 1) ~ " stammt. Angezeigt wird das Datum der letzten Unterweisung oder „nie“. Diese AGT sind untauglich.",
+  "year_end": "Aktive AGT, deren UVV-Unterweisung oder Belastungsübung aus " ~ (y - 1) ~ " stammt. Sie gilt noch bis 31.12." ~ y ~ ". Ohne neuen Nachweis aus " ~ y ~ " ist der AGT ab 01.01." ~ (y + 1) ~ " untauglich. Angezeigt wird, welcher Nachweis abläuft und von wann er ist.",
+  "list_tauglich": "Namentliche Liste der aktiven AGT, die PA-tauglich sind (G26 gültig, Belastungsübung und UVV-Unterweisung aus " ~ y ~ " oder " ~ (y - 1) ~ ").",
+  "list_untauglich": "Namentliche Liste der aktiven AGT, die nicht PA-tauglich sind. Den Grund zeigen die Listen zu G26, Belastungsübung und UVV-Unterweisung.",
+} %}
+{% macro icon(key) -%}
+<span class="help" tabindex="0" role="note" aria-label="{{ texts[key] }}" data-help="{{ texts[key] }}">?</span>
+{%- endmacro %}
