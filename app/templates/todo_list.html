@@ -41,7 +41,18 @@
         {% if t.kategorie and t.kategorie != t.titel %}<span class="badge badge-muted">{{ t.kategorie }}</span>{% endif %}
         {% if t.member %}<a href="/members/{{ t.member.id }}">{{ t.member.vorname }} {{ t.member.name }}</a>{% endif %}
       </div>
+      {% if t.mail_id or t.pruefen %}
+      <div class="todo-meta">
+        {% if t.mail_id %}<span class="badge badge-mail" title="{{ t.mail.absender if t.mail else '' }}">✉ aus E-Mail</span>{% endif %}
+        {% if t.pruefen %}<span class="badge badge-warn">bitte prüfen</span>{% endif %}
+      </div>
+      {% endif %}
       {% if t.bemerkung %}<p class="muted todo-note">{{ t.bemerkung }}</p>{% endif %}
+      {% if t.anhaenge and user.role.value == "admin" %}
+      <ul class="todo-files">
+        {% for a in t.anhaenge %}<li><a href="/todo/{{ t.id }}/anhang/{{ a.id }}" target="_blank">📎 {{ a.dateiname }}</a></li>{% endfor %}
+      </ul>
+      {% endif %}
       <div class="todo-date muted">
         {% if t.status == "erledigt" and t.erledigt_am %}
         erledigt {{ t.erledigt_am.astimezone().strftime("%d.%m.%Y %H:%M") }}

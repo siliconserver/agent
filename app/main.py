@@ -18,11 +18,13 @@ import backup
 import crud
 import emailer
 import exports
+import mailimport
 import models
 from database import Base, engine, get_db
 from scheduler import (
     TZ,
     reschedule,
+    run_mail_import,
     run_send_reminder_emails,
     run_tauglichkeit_check,
     run_weekly_report,
@@ -79,6 +81,9 @@ MESSAGES = {
     "todo_updated": "ToDo wurde gespeichert.",
     "todo_deleted": "ToDo wurde gelöscht.",
     "todo_titel_fehlt": "Bitte einen Titel oder eine Art angeben.",
+    "mail_import_ok": "E-Mail-Einstellungen für den Abruf gespeichert.",
+    "mail_import_run": "E-Mail-Abruf wurde ausgeführt, Ergebnis siehe Protokoll.",
+    "mail_import_busy": "Es läuft gerade schon ein E-Mail-Abruf oder kein Postfach eingerichtet.",
     "totp_enabled": "Zwei-Faktor-Authentifizierung wurde aktiviert.",
     "totp_disabled": "Zwei-Faktor-Authentifizierung wurde deaktiviert.",
     "totp_invalid": "Code ungültig, bitte erneut versuchen.",
@@ -165,6 +170,10 @@ def on_startup():
     _ensure_column("users", "totp_secret", "VARCHAR(32)")
     _ensure_column("users", "totp_enabled", "BOOLEAN NOT NULL DEFAULT FALSE")
     _ensure_column("members", "uvv_unterweisung", "DATE")
+    _ensure_column("settings", "mail_import_interval", "INTEGER")
+    _ensure_column("settings", "mail_import_allowed_senders", "TEXT")
+    _ensure_column("todos", "mail_id", "INTEGER REFERENCES mail_eingang(id) ON DELETE SET NULL")
+    _ensure_column("todos", "pruefen", "BOOLEAN NOT NULL DEFAULT FALSE")
 
     db = next(get_db())
     try:
@@ -195,6 +204,8 @@ def on_startup():
             settings.belastung_reminder_subject = models.DEFAULT_BELASTUNG_REMINDER_SUBJECT
         if not settings.belastung_reminder_body:
             settings.belastung_reminder_body = models.DEFAULT_BELASTUNG_REMINDER_BODY
+        if settings.mail_import_interval is None:
+            settings.mail_import_interval = 60
         db.commit()
 
         crud.update_all_tauglichkeit(db)
@@ -391,6 +402,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
     tauglich = crud.members_tauglich(db)
     untauglich = crud.members_untauglich(db)
     todos_offen = crud.todos_open_count(db)
+    mail_abruf = crud.mail_import_summary(db)
 
     return templates.TemplateResponse(
         "dashboard.html",
@@ -407,6 +419,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
             "tauglich": tauglich,
             "untauglich": untauglich,
             "todos_offen": todos_offen,
+            "mail_abruf": mail_abruf,
         },
     )
 
@@ -1124,6 +1137,29 @@ def todo_delete(todo_id: int, request: Request, db: Session = Depends(get_db)):
     return RedirectResponse("/todo?msg=todo_deleted", status_code=303)
 
 
+@app.get("/todo/{todo_id}/anhang/{anhang_id}")
+def todo_anhang(todo_id: int, anhang_id: int, request: Request, db: Session = Depends(get_db)):
+    # Anhänge sind oft Gesundheitsnachweise (G26), daher nur für Admins
+    user = current_user(request, db)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    require_admin(user)
+    anhang = (
+        db.query(models.TodoAnhang)
+        .filter(models.TodoAnhang.id == anhang_id, models.TodoAnhang.todo_id == todo_id)
+        .first()
+    )
+    if not anhang:
+        raise HTTPException(404, "Nicht gefunden")
+    from urllib.parse import quote
+
+    return Response(
+        anhang.daten,
+        media_type=anhang.content_type or "application/octet-stream",
+        headers={"Content-Disposition": f"inline; filename*=UTF-8''{quote(anhang.dateiname)}"},
+    )
+
+
 # ----------------------------------------------------------- Settings ----
 
 @app.get("/settings", response_class=HTMLResponse)
@@ -1146,6 +1182,10 @@ def settings_page(request: Request, db: Session = Depends(get_db)):
             "users": users,
             "backups": backups,
             "weekdays": crud.WEEKDAYS,
+            "mail_cfg": mailimport.get_config(),
+            "mail_configured": mailimport.is_configured(),
+            "mail_eingang": crud.mail_eingang_recent(db),
+            "mail_abruf_letzter": crud.mail_abruf_last(db),
         },
     )
 
@@ -1213,6 +1253,38 @@ def settings_email_texts(
     db.commit()
 
     return RedirectResponse("/settings?msg=email_ok#email", status_code=303)
+
+
+@app.post("/settings/mail-import")
+def settings_mail_import(
+    request: Request,
+    mail_import_interval: int = Form(0),
+    mail_import_allowed_senders: str = Form(""),
+    db: Session = Depends(get_db),
+):
+    user = current_user(request, db)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    require_admin(user)
+
+    settings = crud.get_settings(db)
+    settings.mail_import_interval = max(0, min(1440, mail_import_interval))
+    settings.mail_import_allowed_senders = mail_import_allowed_senders.strip() or None
+    db.commit()
+
+    reschedule(app.state.scheduler)
+    return RedirectResponse("/settings?msg=mail_import_ok#mailabruf", status_code=303)
+
+
+@app.post("/settings/mail-import/run")
+def settings_mail_import_run(request: Request, db: Session = Depends(get_db)):
+    user = current_user(request, db)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    require_admin(user)
+    abruf = run_mail_import()
+    msg = "mail_import_run" if abruf else "mail_import_busy"
+    return RedirectResponse(f"/settings?msg={msg}#mailabruf", status_code=303)
 
 
 @app.post("/settings/send-weekly-report-now")

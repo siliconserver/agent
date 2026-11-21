@@ -4,10 +4,12 @@ from datetime import date
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 
 import backup
 import crud
 import emailer
+import mailimport
 import models
 from database import SessionLocal
 
@@ -207,6 +209,19 @@ def run_backup_job():
         db.close()
 
 
+def run_mail_import():
+    """Ruft neue Mails aus dem Postfach ab und legt daraus ToDos an."""
+    db = SessionLocal()
+    try:
+        return mailimport.run_import(db)
+    except Exception:
+        logger.exception("Fehler beim E-Mail-Abruf")
+        db.rollback()
+        return None
+    finally:
+        db.close()
+
+
 def reschedule(scheduler: BackgroundScheduler):
     """Liest die aktuellen Einstellungen und setzt alle Cron-Jobs entsprechend neu."""
     db = SessionLocal()
@@ -246,6 +261,17 @@ def reschedule(scheduler: BackgroundScheduler):
         id="backup_job",
         replace_existing=True,
     )
+
+    interval = settings.mail_import_interval or 0
+    if interval > 0 and mailimport.is_configured():
+        scheduler.add_job(
+            run_mail_import,
+            IntervalTrigger(minutes=interval, timezone=TZ),
+            id="mail_import",
+            replace_existing=True,
+        )
+    elif scheduler.get_job("mail_import"):
+        scheduler.remove_job("mail_import")
 
     logger.info(
         "Zeitplan aktualisiert: Tauglichkeit=%s Mails=%s Wochenreport=%s %s Backup=%s",

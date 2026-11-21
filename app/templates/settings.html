@@ -6,6 +6,7 @@
 <div class="settings-nav">
   <a href="#zeitplan">Zeitplan</a>
   <a href="#email">E-Mail-Texte</a>
+  <a href="#mailabruf">E-Mail-Abruf</a>
   <a href="#benutzer">Benutzerverwaltung</a>
   <a href="#backups">Backups</a>
 </div>
@@ -94,6 +95,61 @@
   <form method="post" action="/settings/send-weekly-report-now" style="margin-top:0.8rem;">
     <button type="submit" class="btn-secondary">Wochenreport jetzt zum Testen versenden</button>
   </form>
+</section>
+
+<!-- ============ E-MAIL-ABRUF ============ -->
+<section id="mailabruf" class="panel full-panel">
+  <h2>E-Mail-Abruf (ToDos aus Mails)</h2>
+  <p class="muted">
+    AGENT liest neue (ungelesene) Mails aus einem Postfach, prüft Betreff, Text und PDF-Anhänge auf
+    Stichworte (G26, Belastungsübung, UVV, Lehrgang, Einsatz) und Namen von Geräteträgern und legt daraus
+    ToDos an. Anhänge hängen am ToDo. Was nicht eindeutig erkannt wird, landet als ToDo mit „bitte prüfen“.
+    Alles läuft lokal, es werden keine Daten an Dritte geschickt.
+  </p>
+  {% if mail_configured %}
+  <p>Postfach: <strong>{{ mail_cfg.user }}</strong> auf <strong>{{ mail_cfg.host }}:{{ mail_cfg.port }}</strong>,
+    Ordner <code>{{ mail_cfg.folder }}</code>{% if mail_cfg.done_folder %}, verarbeitete Mails werden nach <code>{{ mail_cfg.done_folder }}</code> verschoben{% endif %}.</p>
+  {% else %}
+  <p class="alert alert-error">Kein Postfach eingerichtet. Bitte <code>IMAP_HOST</code>, <code>IMAP_USER</code> und <code>IMAP_PASSWORD</code> in der <code>.env</code> setzen und AGENT neu starten.</p>
+  {% endif %}
+
+  <form method="post" action="/settings/mail-import" class="form-grid">
+    <label>Abruf alle … Minuten (0 = nur von Hand)
+      <input type="number" name="mail_import_interval" min="0" max="1440" value="{{ settings.mail_import_interval or 0 }}">
+    </label>
+    <label class="full">Nur Mails von diesen Absendern auswerten (Adressen oder Domains, kommagetrennt, leer = alle)
+      <input type="text" name="mail_import_allowed_senders" value="{{ settings.mail_import_allowed_senders or '' }}" placeholder="z.B. @betriebsarzt.de, kommandant@feuerwehr.de">
+    </label>
+    <div class="full actions">
+      <button type="submit" class="btn">Abruf-Einstellungen speichern</button>
+    </div>
+  </form>
+  {% if mail_configured %}
+  <form method="post" action="/settings/mail-import/run" style="margin-top:0.8rem;">
+    <button type="submit" class="btn-secondary">Jetzt abrufen</button>
+    {% if mail_abruf_letzter %}<span class="muted">Letzter Abruf {{ mail_abruf_letzter.zeitpunkt.astimezone().strftime("%d.%m.%Y %H:%M") }}: {{ mail_abruf_letzter.mails_gelesen }} Mails, {{ mail_abruf_letzter.todos_erstellt }} ToDos{% if mail_abruf_letzter.fehler %} · <span class="text-bad">{{ mail_abruf_letzter.fehler }}</span>{% endif %}</span>{% endif %}
+  </form>
+  {% endif %}
+
+  <h3>Protokoll (letzte 30 Mails)</h3>
+  <div class="table-wrap">
+  <table class="data-table">
+    <thead><tr><th>Eingang</th><th>Absender</th><th>Betreff</th><th>Anhänge</th><th>Ergebnis</th></tr></thead>
+    <tbody>
+    {% for e in mail_eingang %}
+      <tr>
+        <td>{{ (e.empfangen_am or e.created_at).astimezone().strftime("%d.%m.%Y %H:%M") }}</td>
+        <td>{{ e.absender }}</td>
+        <td>{{ e.betreff }}</td>
+        <td>{{ e.anhaenge }}</td>
+        <td>{% if e.todos_erstellt %}<strong>{{ e.todos_erstellt }} ToDo{{ "s" if e.todos_erstellt != 1 }}:</strong> {% endif %}{{ e.ergebnis or "" }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5" class="muted">Noch keine Mails abgerufen.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
 </section>
 
 <!-- ============ BENUTZER ============ -->

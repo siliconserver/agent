@@ -24,6 +24,17 @@
     </select>
   </label>
   <label class="full">Bemerkung<textarea name="bemerkung" rows="3">{{ todo.bemerkung or '' }}</textarea></label>
+  {% if todo.mail %}
+  <p class="full muted">✉ Automatisch aus der E-Mail von {{ todo.mail.absender }}{% if todo.mail.empfangen_am %} vom {{ todo.mail.empfangen_am.astimezone().strftime("%d.%m.%Y %H:%M") }}{% endif %} erstellt: „{{ todo.mail.betreff }}“</p>
+  {% endif %}
+  {% if todo.anhaenge %}
+  <div class="full">
+    <strong>Anhänge</strong>
+    <ul class="todo-files">
+      {% for a in todo.anhaenge %}<li><a href="/todo/{{ todo.id }}/anhang/{{ a.id }}" target="_blank">📎 {{ a.dateiname }}</a> <span class="muted">({{ (a.groesse / 1024)|round|int }} KB)</span></li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
 
   <div class="full actions">
     <button type="submit" class="btn">Speichern</button>

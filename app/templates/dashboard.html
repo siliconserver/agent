@@ -23,6 +23,16 @@
   </div>
 </div>
 
+{% if mail_abruf and mail_abruf.mails %}
+<div class="alert alert-mail">
+  <strong>E-Mail-Eingang:</strong> In den letzten {{ mail_abruf.tage }} Tagen wurde{{ "n" if mail_abruf.mails != 1 }} {{ mail_abruf.mails }} Mail{{ "s" if mail_abruf.mails != 1 }} gelesen und ausgewertet, daraus {{ "ist" if mail_abruf.todos == 1 else "sind" }} <a href="/todo">{{ mail_abruf.todos }} ToDo{{ "s" if mail_abruf.todos != 1 }}</a> entstanden{% if mail_abruf.offen %}, davon {{ mail_abruf.offen }} noch offen{% endif %}.
+  <span class="muted">Letzter Abruf {{ mail_abruf.letzter.zeitpunkt.astimezone().strftime("%d.%m.%Y %H:%M") }}.</span>
+</div>
+{% endif %}
+{% if mail_abruf and mail_abruf.letzter.fehler and user.role.value == "admin" %}
+<div class="alert alert-error">E-Mail-Abruf: {{ mail_abruf.letzter.fehler }} <a href="/settings#mailabruf">Einstellungen</a></div>
+{% endif %}
+
 {% if todos_offen %}
 <div class="alert alert-todo"><a href="/todo">{{ todos_offen }} offene{{ "s" if todos_offen == 1 else "" }} ToDo{{ "" if todos_offen == 1 else "s" }}</a>: Nachweise, die noch eingepflegt werden müssen.</div>
 {% endif %}

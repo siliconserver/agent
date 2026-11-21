@@ -8,11 +8,12 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     Integer,
+    LargeBinary,
     String,
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import deferred, relationship
 from sqlalchemy.sql import func
 
 from database import Base
@@ -151,6 +152,12 @@ class Settings(Base):
     belastung_reminder_subject = Column(Text, nullable=True, default=DEFAULT_BELASTUNG_REMINDER_SUBJECT)
     belastung_reminder_body = Column(Text, nullable=True, default=DEFAULT_BELASTUNG_REMINDER_BODY)
 
+    # E-Mail-Abruf (Zugangsdaten zum Postfach stehen in der .env, siehe mailimport.py)
+    # Abstand zwischen zwei Abrufen in Minuten, 0 = automatischer Abruf aus
+    mail_import_interval = Column(Integer, nullable=True, default=60)
+    # nur Mails dieser Absender auswerten (Adressen oder @domain, kommagetrennt); leer = alle
+    mail_import_allowed_senders = Column(Text, nullable=True)
+
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
@@ -232,9 +239,70 @@ class Todo(Base):
     erledigt_am = Column(DateTime(timezone=True), nullable=True)
     erstellt_von = Column(String(64), nullable=True)
 
+    # gesetzt, wenn das ToDo automatisch aus einer E-Mail entstanden ist
+    mail_id = Column(Integer, ForeignKey("mail_eingang.id", ondelete="SET NULL"), nullable=True)
+    # automatisch erzeugt, aber Art oder Geräteträger nicht sicher erkannt
+    pruefen = Column(Boolean, nullable=False, default=False)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
     member = relationship("Member")
+    mail = relationship("MailEingang")
+    anhaenge = relationship(
+        "TodoAnhang", back_populates="todo", cascade="all, delete-orphan", order_by="TodoAnhang.id"
+    )
+
+
+class TodoAnhang(Base):
+    """Datei (meist PDF) aus einer E-Mail, die an einem ToDo hängt.
+
+    Liegt bewusst in der Datenbank, damit sie mit im Backup (pg_dump) ist.
+    """
+
+    __tablename__ = "todo_anhaenge"
+
+    id = Column(Integer, primary_key=True)
+    todo_id = Column(Integer, ForeignKey("todos.id", ondelete="CASCADE"), nullable=False, index=True)
+    dateiname = Column(String(255), nullable=False)
+    content_type = Column(String(128), nullable=True)
+    groesse = Column(Integer, nullable=False, default=0)
+    # deferred: wird erst beim Download geladen, nicht bei jeder ToDo-Liste
+    daten = deferred(Column(LargeBinary, nullable=False))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    todo = relationship("Todo", back_populates="anhaenge")
+
+
+# ---------------------------------------------------------- E-Mail-Abruf ----
+
+class MailEingang(Base):
+    """Protokoll jeder abgerufenen E-Mail. Die Message-ID verhindert,
+    dass dieselbe Mail zweimal ausgewertet wird."""
+
+    __tablename__ = "mail_eingang"
+
+    id = Column(Integer, primary_key=True)
+    message_id = Column(String(512), nullable=False, unique=True, index=True)
+    abruf_id = Column(Integer, ForeignKey("mail_abrufe.id", ondelete="SET NULL"), nullable=True)
+    absender = Column(String(512), nullable=True)
+    betreff = Column(Text, nullable=True)
+    empfangen_am = Column(DateTime(timezone=True), nullable=True)
+    anhaenge = Column(Integer, nullable=False, default=0)
+    todos_erstellt = Column(Integer, nullable=False, default=0)
+    ergebnis = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class MailAbruf(Base):
+    """Ein Durchlauf des E-Mail-Abrufs, für den Hinweis im Dashboard."""
+
+    __tablename__ = "mail_abrufe"
+
+    id = Column(Integer, primary_key=True)
+    zeitpunkt = Column(DateTime(timezone=True), server_default=func.now())
+    mails_gelesen = Column(Integer, nullable=False, default=0)
+    todos_erstellt = Column(Integer, nullable=False, default=0)
+    fehler = Column(Text, nullable=True)
