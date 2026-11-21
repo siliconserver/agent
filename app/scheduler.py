@@ -162,14 +162,14 @@ def run_weekly_report():
         ] or ["  -"]
         lines.append("")
 
-        lines.append(f"Keine Belastungsübung dieses/letztes Jahr ({len(missing)}):")
+        lines.append(f"Ohne gültige Belastungsübung ({len(missing)}):")
         lines += [
             fmt(m, f" - letzte: {m.lastbelastung.strftime('%d.%m.%Y') if m.lastbelastung else 'nie'}")
             for m in missing
         ] or ["  -"]
         lines.append("")
 
-        lines.append(f"Keine UVV-Unterweisung dieses/letztes Jahr ({len(missing_uvv)}):")
+        lines.append(f"Ohne gültige UVV-Unterweisung ({len(missing_uvv)}):")
         lines += [
             fmt(m, f" - letzte: {m.uvv_unterweisung.strftime('%d.%m.%Y') if m.uvv_unterweisung else 'nie'}")
             for m in missing_uvv

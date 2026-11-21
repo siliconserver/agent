@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Berichte{% endblock %}
 {% block content %}
+{% import "_help.html" as help with context %}
 <h1>Berichte</h1>
 
 <div class="actions" style="margin-bottom:1.5rem;">
@@ -8,7 +9,7 @@
 </div>
 
 <div class="panel full-panel">
-  <h2>G26 läuft in den nächsten 3 Monaten ab <span class="count">{{ expiring|length }}</span></h2>
+  <h2>G26 läuft in den nächsten 3 Monaten ab {{ help.icon("g26_expiring") }} <span class="count">{{ expiring|length }}</span></h2>
   {% if expiring %}
   <div class="table-wrap">
   <table class="data-table">
@@ -24,7 +25,7 @@
 </div>
 
 <div class="panel full-panel">
-  <h2>G26 bereits abgelaufen <span class="count">{{ expired|length }}</span></h2>
+  <h2>G26 bereits abgelaufen {{ help.icon("g26_expired") }} <span class="count">{{ expired|length }}</span></h2>
   {% if expired %}
   <div class="table-wrap">
   <table class="data-table">
@@ -40,7 +41,7 @@
 </div>
 
 <div class="panel full-panel">
-  <h2>Keine Belastungsübung dieses oder letztes Jahr <span class="count">{{ missing|length }}</span></h2>
+  <h2>Ohne gültige Belastungsübung {{ help.icon("missing_belastung") }} <span class="count">{{ missing|length }}</span></h2>
   {% if missing %}
   <div class="table-wrap">
   <table class="data-table">
@@ -56,7 +57,7 @@
 </div>
 
 <div class="panel full-panel">
-  <h2>Keine UVV-Unterweisung dieses/letztes Jahr <span class="count">{{ missing_uvv|length }}</span></h2>
+  <h2>Ohne gültige UVV-Unterweisung {{ help.icon("missing_uvv") }} <span class="count">{{ missing_uvv|length }}</span></h2>
   {% if missing_uvv %}
   <div class="table-wrap">
   <table class="data-table">
@@ -72,26 +73,7 @@
 </div>
 
 <div class="panel full-panel">
-  <h2>UVV oder Belastungsübung läuft zum 31.12.{{ today.year }} ab <span class="count">{{ year_end|length }}</span></h2>
-  <p class="muted">Aktive AGT, deren UVV-Unterweisung oder Belastungsübung aus {{ today.year - 1 }} stammt. Ohne neuen Nachweis aus {{ today.year }} sind sie ab dem 01.01.{{ today.year + 1 }} untauglich.</p>
-  {% if year_end %}
-  <div class="table-wrap">
-  <table class="data-table">
-    <thead><tr><th>Name</th><th>Vorname</th><th>Letzte UVV-Unterweisung</th><th>Letzte Belastung</th><th>E-Mail</th></tr></thead>
-    <tbody>
-    {% for m in year_end %}
-      <tr><td><a href="/members/{{ m.id }}">{{ m.name }}</a></td><td>{{ m.vorname }}</td>
-        <td class="{{ 'nok' if laeuft_jahresende_ab(m.uvv_unterweisung) }}">{{ m.uvv_unterweisung.strftime("%d.%m.%Y") if m.uvv_unterweisung else "nie" }}</td>
-        <td class="{{ 'nok' if laeuft_jahresende_ab(m.lastbelastung) }}">{{ m.lastbelastung.strftime("%d.%m.%Y") if m.lastbelastung else "nie" }}</td>
-        <td>{{ m.email or "-" }}</td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
-  </div>
-  {% else %}<p class="muted">Keine.</p>{% endif %}
-</div>
-<div class="panel full-panel">
-  <h2>UVV oder Belastungsübung läuft zum 31.12.{{ today.year }} ab <span class="count">{{ year_end|length }}</span></h2>
+  <h2>UVV / Belastungsübung läuft zum 31.12.{{ today.year }} ab {{ help.icon("year_end") }} <span class="count">{{ year_end|length }}</span></h2>
   <p class="muted">Aktive AGT, deren UVV-Unterweisung oder Belastungsübung aus {{ today.year - 1 }} stammt. Ohne neuen Nachweis aus {{ today.year }} sind sie ab dem 01.01.{{ today.year + 1 }} untauglich.</p>
   {% if year_end %}
   <div class="table-wrap">

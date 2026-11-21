@@ -1,30 +1,31 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
+{% import "_help.html" as help with context %}
 <h1>Dashboard</h1>
 
 <div class="stat-grid">
   <div class="stat-card">
     <div class="stat-value">{{ stats.total }}</div>
-    <div class="stat-label">AGT insgesamt</div>
+    <div class="stat-label">AGT insgesamt {{ help.icon("total") }}</div>
   </div>
   <div class="stat-card">
     <div class="stat-value">{{ stats.active }} <span class="stat-pct">({{ stats.active_pct }}%)</span></div>
-    <div class="stat-label">AGT aktiv</div>
+    <div class="stat-label">AGT aktiv {{ help.icon("active") }}</div>
   </div>
   <div class="stat-card good">
     <div class="stat-value">{{ stats.tauglich }} <span class="stat-pct">({{ stats.tauglich_pct }}%)</span></div>
-    <div class="stat-label">davon tauglich</div>
+    <div class="stat-label">davon tauglich {{ help.icon("tauglich") }}</div>
   </div>
   <div class="stat-card bad">
     <div class="stat-value">{{ stats.untauglich }} <span class="stat-pct">({{ stats.untauglich_pct }}%)</span></div>
-    <div class="stat-label">davon untauglich</div>
+    <div class="stat-label">davon untauglich {{ help.icon("untauglich") }}</div>
   </div>
 </div>
 
 <div class="panel-grid">
   <div class="panel">
-    <h2>G26 läuft in 3 Monaten ab <span class="count">{{ expiring|length }}</span></h2>
+    <h2>G26 läuft in 3 Monaten ab {{ help.icon("g26_expiring") }} <span class="count">{{ expiring|length }}</span></h2>
     {% if expiring %}
     <table class="mini-table">
       {% for m in expiring %}
@@ -35,7 +36,7 @@
   </div>
 
   <div class="panel">
-    <h2>G26 bereits abgelaufen <span class="count">{{ expired|length }}</span></h2>
+    <h2>G26 bereits abgelaufen {{ help.icon("g26_expired") }} <span class="count">{{ expired|length }}</span></h2>
     {% if expired %}
     <table class="mini-table">
       {% for m in expired %}
@@ -46,7 +47,7 @@
   </div>
 
   <div class="panel">
-    <h2>Keine Belastungsübung dieses/letztes Jahr <span class="count">{{ missing|length }}</span></h2>
+    <h2>Ohne gültige Belastungsübung {{ help.icon("missing_belastung") }} <span class="count">{{ missing|length }}</span></h2>
     {% if missing %}
     <table class="mini-table">
       {% for m in missing %}
@@ -57,7 +58,7 @@
   </div>
 
   <div class="panel">
-    <h2>Keine UVV-Unterweisung dieses/letztes Jahr <span class="count">{{ missing_uvv|length }}</span></h2>
+    <h2>Ohne gültige UVV-Unterweisung {{ help.icon("missing_uvv") }} <span class="count">{{ missing_uvv|length }}</span></h2>
     {% if missing_uvv %}
     <table class="mini-table">
       {% for m in missing_uvv %}
@@ -68,7 +69,7 @@
   </div>
 
   <div class="panel">
-    <h2>UVV / Belastungsübung läuft zum 31.12.{{ today.year }} ab <span class="count">{{ year_end|length }}</span></h2>
+    <h2>UVV / Belastungsübung läuft zum 31.12.{{ today.year }} ab {{ help.icon("year_end") }} <span class="count">{{ year_end|length }}</span></h2>
     {% if year_end %}
     <table class="mini-table">
       {% for m in year_end %}
@@ -79,7 +80,7 @@
   </div>
 
   <div class="panel">
-    <h2>AGT tauglich <span class="count">{{ tauglich|length }}</span></h2>
+    <h2>AGT tauglich {{ help.icon("list_tauglich") }} <span class="count">{{ tauglich|length }}</span></h2>
     {% if tauglich %}
     <table class="mini-table">
       {% for m in tauglich %}
@@ -90,7 +91,7 @@
   </div>
 
   <div class="panel">
-    <h2>AGT untauglich <span class="count">{{ untauglich|length }}</span></h2>
+    <h2>AGT untauglich {{ help.icon("list_untauglich") }} <span class="count">{{ untauglich|length }}</span></h2>
     {% if untauglich %}
     <table class="mini-table">
       {% for m in untauglich %}

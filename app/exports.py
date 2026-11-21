@@ -154,7 +154,7 @@ def build_reports_pdf(
     story.append(Spacer(1, 18))
 
     story.append(
-        Paragraph(f"Keine Belastungsübung dieses/letztes Jahr ({len(missing)})", styles["Heading2"])
+        Paragraph(f"Ohne gültige Belastungsübung ({len(missing)})", styles["Heading2"])
     )
     if missing:
         story.append(_styled_table(_member_rows(missing, "lastbelastung", "Letzte Belastung"), col_widths=[6 * cm, 6 * cm, 4 * cm]))
@@ -164,7 +164,7 @@ def build_reports_pdf(
 
     missing_uvv = missing_uvv or []
     story.append(
-        Paragraph(f"Keine UVV-Unterweisung dieses/letztes Jahr ({len(missing_uvv)})", styles["Heading2"])
+        Paragraph(f"Ohne gültige UVV-Unterweisung ({len(missing_uvv)})", styles["Heading2"])
     )
     if missing_uvv:
         story.append(_styled_table(_member_rows(missing_uvv, "uvv_unterweisung", "Letzte UVV"), col_widths=[6 * cm, 6 * cm, 4 * cm]))
@@ -176,7 +176,7 @@ def build_reports_pdf(
     today = date.today()
     story.append(
         Paragraph(
-            f"UVV oder Belastungsübung läuft zum 31.12.{today.year} ab ({len(year_end)})",
+            f"UVV / Belastungsübung läuft zum 31.12.{today.year} ab ({len(year_end)})",
             styles["Heading2"],
         )
     )
