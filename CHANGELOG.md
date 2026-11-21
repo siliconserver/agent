@@ -3,6 +3,11 @@
 Alle relevanten Änderungen an AGENT. Neueste Version oben.
 Diese Datei wird auch auf der Seite „Über AGENT“ angezeigt; die oberste Version ist die App-Version.
 
+## 2.2 (2026-11-21)
+- Neue Seite „ToDo“: eingegangene Nachweise (G26, Belastungsübung, UVV-Unterweisung usw.), die noch ins Verwaltungsprogramm eingepflegt werden müssen, lassen sich mit Art, Geräteträger und Bemerkung erfassen
+- Status „ToDo“, „In Arbeit“ und „Erledigt“ als drei Spalten, Wechsel per Klick; erledigte Einträge verschwinden einen Tag nach dem Erledigen aus der Liste
+- Das Dashboard weist auf offene ToDos hin
+
 ## 2.1.1 (2026-11-21)
 - Dashboard und Wochenreport: Der Bericht heißt jetzt „UVV / Belastungsübung läuft zum 31.12. ab“ und nennt pro AGT, ob UVV oder Belastungsübung abläuft und von wann sie ist
 - „Keine Belastungsübung dieses/letztes Jahr“ heißt jetzt „Ohne gültige Belastungsübung“, „Keine UVV-Unterweisung dieses/letztes Jahr“ heißt „Ohne gültige UVV-Unterweisung“ (Dashboard, Berichte, PDF, Wochenreport)

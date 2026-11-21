@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}ToDo{% endblock %}
+{% block content %}
+<h1>ToDo</h1>
+<p class="muted">Eingegangene Nachweise (G26, Belastungsübung, UVV-Unterweisung …), die noch ins Verwaltungsprogramm eingepflegt werden müssen. Erledigte Einträge verschwinden einen Tag nach dem Erledigen aus der Liste.</p>
+
+{% if user.role.value == "admin" %}
+<div class="panel full-panel">
+  <h2>Neues ToDo</h2>
+  <form method="post" action="/todo/new" class="form-grid">
+    <label>Art
+      <select name="kategorie">
+        <option value="">–</option>
+        {% for k in kategorien %}<option value="{{ k }}">{{ k }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Geräteträger
+      <select name="member_id">
+        <option value="">–</option>
+        {% for m in members %}<option value="{{ m.id }}">{{ m.name }}, {{ m.vorname }}</option>{% endfor %}
+      </select>
+    </label>
+    <label class="full">Titel<input type="text" name="titel" maxlength="255" placeholder="leer = Art als Titel, z.B. „G26-Nachweis“"></label>
+    <label class="full">Bemerkung<textarea name="bemerkung" rows="2"></textarea></label>
+    <div class="full actions" style="margin-top:0;">
+      <button type="submit" class="btn">Hinzufügen</button>
+    </div>
+  </form>
+</div>
+{% endif %}
+
+<div class="todo-board">
+  {% for status, label in status_labels.items() %}
+  {% set items = todos.get(status, []) %}
+  <div class="panel todo-column todo-{{ status }}">
+    <h2>{{ label }} <span class="count">{{ items|length }}</span></h2>
+    {% for t in items %}
+    <div class="todo-card">
+      <div class="todo-title">{{ t.titel }}</div>
+      <div class="todo-meta">
+        {% if t.kategorie and t.kategorie != t.titel %}<span class="badge badge-muted">{{ t.kategorie }}</span>{% endif %}
+        {% if t.member %}<a href="/members/{{ t.member.id }}">{{ t.member.vorname }} {{ t.member.name }}</a>{% endif %}
+      </div>
+      {% if t.bemerkung %}<p class="muted todo-note">{{ t.bemerkung }}</p>{% endif %}
+      <div class="todo-date muted">
+        {% if t.status == "erledigt" and t.erledigt_am %}
+        erledigt {{ t.erledigt_am.astimezone().strftime("%d.%m.%Y %H:%M") }}
+        {% elif t.created_at %}
+        seit {{ t.created_at.strftime("%d.%m.%Y") }}{% if t.erstellt_von %} · {{ t.erstellt_von }}{% endif %}
+        {% endif %}
+      </div>
+      {% if user.role.value == "admin" %}
+      <div class="todo-actions">
+        {% for s, l in status_labels.items() if s != t.status %}
+        <form method="post" action="/todo/{{ t.id }}/status">
+          <input type="hidden" name="status" value="{{ s }}">
+          <button type="submit" class="btn-secondary btn-small">→ {{ l }}</button>
+        </form>
+        {% endfor %}
+        <a href="/todo/{{ t.id }}/edit" class="btn-secondary btn-small">Bearbeiten</a>
+      </div>
+      {% endif %}
+    </div>
+    {% else %}
+    <p class="muted">Keine.</p>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

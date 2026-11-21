@@ -75,6 +75,10 @@ MESSAGES = {
     "teilnahme_exists": "Dieser AGT ist diesem Termin bereits zugewiesen.",
     "teilnahme_full": "Diese Gruppe ist bereits voll.",
     "member_deleted": "Geräteträger wurde gelöscht.",
+    "todo_created": "ToDo wurde angelegt.",
+    "todo_updated": "ToDo wurde gespeichert.",
+    "todo_deleted": "ToDo wurde gelöscht.",
+    "todo_titel_fehlt": "Bitte einen Titel oder eine Art angeben.",
     "totp_enabled": "Zwei-Faktor-Authentifizierung wurde aktiviert.",
     "totp_disabled": "Zwei-Faktor-Authentifizierung wurde deaktiviert.",
     "totp_invalid": "Code ungültig, bitte erneut versuchen.",
@@ -386,6 +390,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
     year_end = crud.members_expiring_year_end(db)
     tauglich = crud.members_tauglich(db)
     untauglich = crud.members_untauglich(db)
+    todos_offen = crud.todos_open_count(db)
 
     return templates.TemplateResponse(
         "dashboard.html",
@@ -401,6 +406,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
             "today": date.today(),
             "tauglich": tauglich,
             "untauglich": untauglich,
+            "todos_offen": todos_offen,
         },
     )
 
@@ -975,6 +981,147 @@ def _belastung_pdf(request: Request, db: Session, year: int):
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+# --------------------------------------------------------------- ToDo ----
+
+def _todo_or_404(db: Session, todo_id: int) -> "models.Todo":
+    todo = db.query(models.Todo).filter(models.Todo.id == todo_id).first()
+    if not todo:
+        raise HTTPException(404, "Nicht gefunden")
+    return todo
+
+
+def _todo_form_context(request: Request, db: Session, user, todo):
+    return {
+        "request": request,
+        "user": user,
+        "todo": todo,
+        "members": crud.members_active(db),
+        "kategorien": models.TODO_KATEGORIEN,
+        "status_labels": models.TODO_STATUS,
+    }
+
+
+@app.get("/todo", response_class=HTMLResponse)
+def todo_list(request: Request, db: Session = Depends(get_db)):
+    user = current_user(request, db)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    return templates.TemplateResponse(
+        "todo_list.html",
+        {
+            "request": request,
+            "user": user,
+            "todos": crud.todos_visible(db),
+            "status_labels": models.TODO_STATUS,
+            "members": crud.members_active(db),
+            "kategorien": models.TODO_KATEGORIEN,
+        },
+    )
+
+
+@app.post("/todo/new")
+def todo_new(
+    request: Request,
+    titel: str = Form(""),
+    kategorie: str = Form(""),
+    member_id: str = Form(""),
+    bemerkung: str = Form(""),
+    db: Session = Depends(get_db),
+):
+    user = current_user(request, db)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    require_admin(user)
+
+    titel = titel.strip()
+    if not titel:
+        # ohne eigenen Titel z.B. "G26-Nachweis" als Titel verwenden
+        titel = kategorie.strip()
+    if not titel:
+        return RedirectResponse("/todo?msg=todo_titel_fehlt", status_code=303)
+
+    db.add(
+        models.Todo(
+            titel=titel,
+            kategorie=kategorie or None,
+            member_id=int(member_id) if member_id else None,
+            bemerkung=bemerkung.strip() or None,
+            status="todo",
+            erstellt_von=user.username,
+        )
+    )
+    db.commit()
+    return RedirectResponse("/todo?msg=todo_created", status_code=303)
+
+
+@app.get("/todo/{todo_id}/edit", response_class=HTMLResponse)
+def todo_edit_form(todo_id: int, request: Request, db: Session = Depends(get_db)):
+    user = current_user(request, db)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    require_admin(user)
+    todo = _todo_or_404(db, todo_id)
+    return templates.TemplateResponse("todo_form.html", _todo_form_context(request, db, user, todo))
+
+
+@app.post("/todo/{todo_id}/edit")
+def todo_edit(
+    todo_id: int,
+    request: Request,
+    titel: str = Form(...),
+    kategorie: str = Form(""),
+    member_id: str = Form(""),
+    bemerkung: str = Form(""),
+    status: str = Form("todo"),
+    db: Session = Depends(get_db),
+):
+    user = current_user(request, db)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    require_admin(user)
+    todo = _todo_or_404(db, todo_id)
+
+    todo.titel = titel.strip() or todo.titel
+    todo.kategorie = kategorie or None
+    todo.member_id = int(member_id) if member_id else None
+    todo.bemerkung = bemerkung.strip() or None
+    if status in models.TODO_STATUS:
+        crud.set_todo_status(todo, status)
+    db.commit()
+    return RedirectResponse("/todo?msg=todo_updated", status_code=303)
+
+
+@app.post("/todo/{todo_id}/status")
+def todo_set_status(
+    todo_id: int,
+    request: Request,
+    status: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    user = current_user(request, db)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    require_admin(user)
+    todo = _todo_or_404(db, todo_id)
+    if status not in models.TODO_STATUS:
+        raise HTTPException(400, "Unbekannter Status")
+    crud.set_todo_status(todo, status)
+    db.commit()
+    return RedirectResponse("/todo", status_code=303)
+
+
+@app.post("/todo/{todo_id}/delete")
+def todo_delete(todo_id: int, request: Request, db: Session = Depends(get_db)):
+    user = current_user(request, db)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    require_admin(user)
+    todo = _todo_or_404(db, todo_id)
+    db.delete(todo)
+    db.commit()
+    return RedirectResponse("/todo?msg=todo_deleted", status_code=303)
 
 
 # ----------------------------------------------------------- Settings ----

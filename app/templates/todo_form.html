@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}ToDo bearbeiten{% endblock %}
+{% block content %}
+<h1>ToDo bearbeiten</h1>
+<form method="post" action="/todo/{{ todo.id }}/edit" class="form-grid">
+  <label class="full">Titel<input type="text" name="titel" maxlength="255" value="{{ todo.titel }}" required></label>
+  <label>Art
+    <select name="kategorie">
+      <option value="">–</option>
+      {% for k in kategorien %}<option value="{{ k }}" {% if todo.kategorie == k %}selected{% endif %}>{{ k }}</option>{% endfor %}
+      {% if todo.kategorie and todo.kategorie not in kategorien %}<option value="{{ todo.kategorie }}" selected>{{ todo.kategorie }}</option>{% endif %}
+    </select>
+  </label>
+  <label>Geräteträger
+    <select name="member_id">
+      <option value="">–</option>
+      {% for m in members %}<option value="{{ m.id }}" {% if todo.member_id == m.id %}selected{% endif %}>{{ m.name }}, {{ m.vorname }}</option>{% endfor %}
+      {% if todo.member and todo.member not in members %}<option value="{{ todo.member.id }}" selected>{{ todo.member.name }}, {{ todo.member.vorname }} (inaktiv)</option>{% endif %}
+    </select>
+  </label>
+  <label>Status
+    <select name="status">
+      {% for s, l in status_labels.items() %}<option value="{{ s }}" {% if todo.status == s %}selected{% endif %}>{{ l }}</option>{% endfor %}
+    </select>
+  </label>
+  <label class="full">Bemerkung<textarea name="bemerkung" rows="3">{{ todo.bemerkung or '' }}</textarea></label>
+
+  <div class="full actions">
+    <button type="submit" class="btn">Speichern</button>
+    <a href="/todo" class="btn-secondary">Abbrechen</a>
+  </div>
+</form>
+<form method="post" action="/todo/{{ todo.id }}/delete" class="actions" onsubmit="return confirm('Dieses ToDo wirklich löschen?');">
+  <button type="submit" class="btn-secondary btn-danger">Löschen</button>
+</form>
+{% endblock %}
