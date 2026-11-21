@@ -68,11 +68,11 @@
   </div>
 
   <div class="panel">
-    <h2>Läuft zum 31.12.{{ today.year }} ab <span class="count">{{ year_end|length }}</span></h2>
+    <h2>UVV / Belastungsübung läuft zum 31.12.{{ today.year }} ab <span class="count">{{ year_end|length }}</span></h2>
     {% if year_end %}
     <table class="mini-table">
       {% for m in year_end %}
-      <tr><td><a href="/members/{{ m.id }}">{{ m.vorname }} {{ m.name }}</a></td><td>{% if laeuft_jahresende_ab(m.uvv_unterweisung) %}UVV {{ m.uvv_unterweisung.strftime("%d.%m.%Y") }}{% endif %}{% if laeuft_jahresende_ab(m.uvv_unterweisung) and laeuft_jahresende_ab(m.lastbelastung) %}<br>{% endif %}{% if laeuft_jahresende_ab(m.lastbelastung) %}Belastung {{ m.lastbelastung.strftime("%d.%m.%Y") }}{% endif %}</td></tr>
+      <tr><td><a href="/members/{{ m.id }}">{{ m.vorname }} {{ m.name }}</a></td><td>{% if laeuft_jahresende_ab(m.uvv_unterweisung) %}UVV vom {{ m.uvv_unterweisung.strftime("%d.%m.%Y") }}{% endif %}{% if laeuft_jahresende_ab(m.uvv_unterweisung) and laeuft_jahresende_ab(m.lastbelastung) %}<br>{% endif %}{% if laeuft_jahresende_ab(m.lastbelastung) %}Belastungsübung vom {{ m.lastbelastung.strftime("%d.%m.%Y") }}{% endif %}</td></tr>
       {% endfor %}
     </table>
     {% else %}<p class="muted">Keine.</p>{% endif %}

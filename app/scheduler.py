@@ -181,12 +181,12 @@ def run_weekly_report():
         def year_end_info(m):
             parts = []
             if crud.expires_end_of_year(m.uvv_unterweisung, today):
-                parts.append(f"UVV {m.uvv_unterweisung.strftime('%d.%m.%Y')}")
+                parts.append(f"UVV vom {m.uvv_unterweisung.strftime('%d.%m.%Y')}")
             if crud.expires_end_of_year(m.lastbelastung, today):
-                parts.append(f"Belastung {m.lastbelastung.strftime('%d.%m.%Y')}")
+                parts.append(f"Belastungsübung vom {m.lastbelastung.strftime('%d.%m.%Y')}")
             return " - " + ", ".join(parts)
 
-        lines.append(f"Läuft zum 31.12.{today.year} ab ({len(year_end)}):")
+        lines.append(f"UVV / Belastungsübung läuft zum 31.12.{today.year} ab ({len(year_end)}):")
         lines += [fmt(m, year_end_info(m)) for m in year_end] or ["  -"]
 
         emailer.send_mail(admin_email, settings.weekly_report_subject, "\n".join(lines))
