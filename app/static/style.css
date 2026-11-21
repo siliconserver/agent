@@ -368,3 +368,11 @@ h2:has(> .help), .stat-label { position: relative; }
 .todo-actions form { display: inline; }
 .btn-small { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
 .alert-todo { background: rgba(224,81,47,0.12); border: 1px solid rgba(224,81,47,0.35); }
+
+/* E-Mail-Abruf */
+.alert-mail { background: rgba(88,166,255,0.12); border: 1px solid rgba(88,166,255,0.35); }
+.badge-mail { background: rgba(88,166,255,0.18); color: #79b8ff; text-transform: none; }
+.badge-warn { background: rgba(210,153,34,0.2); color: #e3b341; text-transform: none; }
+.todo-files { list-style: none; padding: 0; margin: 0.4rem 0 0; font-size: 0.85rem; }
+.todo-files li { margin: 0.15rem 0; word-break: break-all; }
+.text-bad { color: var(--bad); }

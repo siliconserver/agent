@@ -3,6 +3,14 @@
 Alle relevanten Änderungen an AGENT. Neueste Version oben.
 Diese Datei wird auch auf der Seite „Über AGENT“ angezeigt; die oberste Version ist die App-Version.
 
+## 2.3 (2026-11-21)
+- Neu: E-Mail-Abruf. AGENT liest neue Mails aus einem Postfach (IMAP, Zugangsdaten in der `.env`) und legt daraus automatisch ToDos an
+- Ausgewertet werden Betreff, Mailtext und PDF-Anhänge per Stichworten (G26, Belastungsübung, UVV, Lehrgang, Einsatz) und Namensabgleich mit der Geräteträger-Liste, komplett lokal ohne externe Dienste. Mehrere Nachweise in einer Mail werden zu mehreren ToDos
+- Was nicht eindeutig erkannt wird, wird trotzdem ein ToDo und ist mit „bitte prüfen“ markiert; jede Mail wird nur einmal verarbeitet
+- Anhänge hängen am ToDo und lassen sich dort öffnen (nur Admins); ToDos aus Mails tragen das Symbol „✉ aus E-Mail“
+- Das Dashboard zeigt, wie viele Mails in den letzten 7 Tagen gelesen und wie viele ToDos daraus erstellt wurden
+- Einstellungen → E-Mail-Abruf: Abruf-Intervall, Absender-Filter, „Jetzt abrufen“ und Protokoll der letzten 30 Mails
+
 ## 2.2 (2026-11-21)
 - Neue Seite „ToDo“: eingegangene Nachweise (G26, Belastungsübung, UVV-Unterweisung usw.), die noch ins Verwaltungsprogramm eingepflegt werden müssen, lassen sich mit Art, Geräteträger und Bemerkung erfassen
 - Status „ToDo“, „In Arbeit“ und „Erledigt“ als drei Spalten, Wechsel per Klick; erledigte Einträge verschwinden einen Tag nach dem Erledigen aus der Liste

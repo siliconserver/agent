@@ -321,3 +321,44 @@ def set_todo_status(todo: "models.Todo", status: str) -> None:
     elif status != "erledigt":
         todo.erledigt_am = None
     todo.status = status
+
+
+# ----------------------------------------------------------- E-Mail-Abruf
+
+def mail_abruf_last(db: Session):
+    return db.query(models.MailAbruf).order_by(models.MailAbruf.zeitpunkt.desc()).first()
+
+
+def mail_import_summary(db: Session, days: int = 7):
+    """Für den Dashboard-Hinweis: Summe der letzten Tage plus letzter Abruf.
+
+    Liefert None, wenn es in dem Zeitraum keinen Abruf gab.
+    """
+    from datetime import datetime, timezone
+
+    seit = datetime.now(timezone.utc) - timedelta(days=days)
+    abrufe = db.query(models.MailAbruf).filter(models.MailAbruf.zeitpunkt >= seit).all()
+    if not abrufe:
+        return None
+    letzter = max(abrufe, key=lambda a: a.zeitpunkt)
+    offen = (
+        db.query(models.Todo)
+        .filter(models.Todo.mail_id.isnot(None), models.Todo.status != "erledigt")
+        .count()
+    )
+    return {
+        "tage": days,
+        "mails": sum(a.mails_gelesen for a in abrufe),
+        "todos": sum(a.todos_erstellt for a in abrufe),
+        "offen": offen,
+        "letzter": letzter,
+    }
+
+
+def mail_eingang_recent(db: Session, limit: int = 30):
+    return (
+        db.query(models.MailEingang)
+        .order_by(models.MailEingang.created_at.desc(), models.MailEingang.id.desc())
+        .limit(limit)
+        .all()
+    )
