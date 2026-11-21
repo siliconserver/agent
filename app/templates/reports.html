@@ -1,5 +1,25 @@
 {% extends "base.html" %}
-{% block title %}Berichte{% endblock %}
+{% block title %}Berichte
+<div class="panel full-panel">
+  <h2>UVV oder Belastungsübung läuft zum 31.12.{{ today.year }} ab <span class="count">{{ year_end|length }}</span></h2>
+  <p class="muted">Aktive AGT, deren UVV-Unterweisung oder Belastungsübung aus {{ today.year - 1 }} stammt. Ohne neuen Nachweis aus {{ today.year }} sind sie ab dem 01.01.{{ today.year + 1 }} untauglich.</p>
+  {% if year_end %}
+  <div class="table-wrap">
+  <table class="data-table">
+    <thead><tr><th>Name</th><th>Vorname</th><th>Letzte UVV-Unterweisung</th><th>Letzte Belastung</th><th>E-Mail</th></tr></thead>
+    <tbody>
+    {% for m in year_end %}
+      <tr><td><a href="/members/{{ m.id }}">{{ m.name }}</a></td><td>{{ m.vorname }}</td>
+        <td class="{{ 'nok' if laeuft_jahresende_ab(m.uvv_unterweisung) }}">{{ m.uvv_unterweisung.strftime("%d.%m.%Y") if m.uvv_unterweisung else "nie" }}</td>
+        <td class="{{ 'nok' if laeuft_jahresende_ab(m.lastbelastung) }}">{{ m.lastbelastung.strftime("%d.%m.%Y") if m.lastbelastung else "nie" }}</td>
+        <td>{{ m.email or "-" }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}<p class="muted">Keine.</p>{% endif %}
+</div>
+{% endblock %}
 {% block content %}
 <h1>Berichte</h1>
 
@@ -64,6 +84,26 @@
     <tbody>
     {% for m in missing_uvv %}
       <tr><td><a href="/members/{{ m.id }}">{{ m.name }}</a></td><td>{{ m.vorname }}</td><td>{{ m.uvv_unterweisung.strftime("%d.%m.%Y") if m.uvv_unterweisung else "nie" }}</td><td>{{ m.email or "-" }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}<p class="muted">Keine.</p>{% endif %}
+</div>
+
+<div class="panel full-panel">
+  <h2>UVV oder Belastungsübung läuft zum 31.12.{{ today.year }} ab <span class="count">{{ year_end|length }}</span></h2>
+  <p class="muted">Aktive AGT, deren UVV-Unterweisung oder Belastungsübung aus {{ today.year - 1 }} stammt. Ohne neuen Nachweis aus {{ today.year }} sind sie ab dem 01.01.{{ today.year + 1 }} untauglich.</p>
+  {% if year_end %}
+  <div class="table-wrap">
+  <table class="data-table">
+    <thead><tr><th>Name</th><th>Vorname</th><th>Letzte UVV-Unterweisung</th><th>Letzte Belastung</th><th>E-Mail</th></tr></thead>
+    <tbody>
+    {% for m in year_end %}
+      <tr><td><a href="/members/{{ m.id }}">{{ m.name }}</a></td><td>{{ m.vorname }}</td>
+        <td class="{{ 'nok' if laeuft_jahresende_ab(m.uvv_unterweisung) }}">{{ m.uvv_unterweisung.strftime("%d.%m.%Y") if m.uvv_unterweisung else "nie" }}</td>
+        <td class="{{ 'nok' if laeuft_jahresende_ab(m.lastbelastung) }}">{{ m.lastbelastung.strftime("%d.%m.%Y") if m.lastbelastung else "nie" }}</td>
+        <td>{{ m.email or "-" }}</td></tr>
     {% endfor %}
     </tbody>
   </table>

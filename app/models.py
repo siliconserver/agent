@@ -64,8 +64,8 @@ class Member(Base):
     csatauglich = Column(Boolean, nullable=False, default=False)
     agtaktiv = Column(Boolean, nullable=False, default=True)
 
-    # Datum der letzten UVV-Unterweisung. Rein informativ, hat keine
-    # Auswirkung auf die Tauglichkeitsberechnung.
+    # Datum der letzten UVV-Unterweisung. Gilt im Jahr der Unterweisung und
+    # im ganzen folgenden Kalenderjahr (siehe crud.is_valid_calendar_year).
     # nullable, da nachträglich per _ensure_column zu einer bestehenden
     # Tabelle hinzugefügt (siehe main.py on_startup)
     uvv_unterweisung = Column(Date, nullable=True)

@@ -13,13 +13,21 @@ Alles läuft auf eurem eigenen Server, die Daten bleiben bei euch.
   Belastungsübung, UVV-Unterweisung, letzte AGT- und CSA-Einsätze, PA- und
   CSA-Tauglichkeit, aktiv/inaktiv. Die Liste lässt sich per Klick auf die
   Spaltenüberschriften sortieren, inaktive Geräteträger lassen sich ausblenden.
-- **Automatische Tauglichkeitsprüfung**: Ein AGT gilt automatisch als nicht
-  tauglich, wenn die G26 abgelaufen ist oder im laufenden und letzten
-  Kalenderjahr keine Belastungsübung oder keine UVV-Unterweisung stattfand.
-  Die Prüfung läuft täglich zur eingestellten Uhrzeit und auf Knopfdruck.
+- **Automatische Tauglichkeitsprüfung**: Ein AGT ist nur tauglich, wenn die
+  G26 gültig ist und die letzte Belastungsübung und die letzte
+  UVV-Unterweisung im laufenden oder im vorherigen Kalenderjahr liegen. Fehlt
+  ein Datum, ist der AGT untauglich. Die Prüfung läuft täglich zur
+  eingestellten Uhrzeit und auf Knopfdruck.
+- **Kalenderjahr-Frist**: „Jährlich“ heißt bei UVV-Unterweisung und
+  Belastungsübung einmal pro Kalenderjahr, nicht 12 Monate ab Datum. Ein
+  Nachweis gilt im Jahr, in dem er absolviert wurde, und im ganzen folgenden
+  Jahr. Beispiel: UVV am 25.10.2026 → gültig bis 31.12.2027 → ab 01.01.2028
+  untauglich, wenn bis dahin keine UVV aus 2027 eingetragen ist. Liste und
+  Detailansicht zeigen das jeweilige „gültig bis“.
 - **Dashboard und Berichte**: Wie viele AGT sind aktiv, tauglich, untauglich
   (als Zahl und in %), wessen G26 läuft in den nächsten 3 Monaten ab oder ist
-  schon abgelaufen, wem fehlt Belastungsübung oder UVV-Unterweisung.
+  schon abgelaufen, wem fehlt Belastungsübung oder UVV-Unterweisung und wessen
+  UVV oder Belastungsübung zum 31.12. des laufenden Jahres abläuft.
 - **Belastungsübungen planen**: Termine anlegen und pro Termin bis zu 10 AGT
   eintragen (6 fest, 4 auf Rückfrage). Die Teilnehmer bekommen sofort eine Mail
   und 3 Tage vorher eine Erinnerung mit der Liste der anderen Teilnehmer. Nach
@@ -27,7 +35,7 @@ Alles läuft auf eurem eigenen Server, die Daten bleiben bei euch.
   eingetragen. Ältere Jahre bleiben im Archiv.
 - **E-Mails**: G26-Erinnerung an den Geräteträger, wenn die Untersuchung in
   90 Tagen abläuft (optional mit Kopie an eine feste Adresse), und ein
-  wöchentlicher Bericht an die Wehrführung. Alle Texte sind in der
+  wöchentlicher Bericht an die Wehrführung (inklusive „läuft zum Jahresende ab“). Alle Texte sind in der
   Weboberfläche anpassbar.
 - **Export**: Geräteträger als CSV, Berichte und Terminübersichten als PDF.
 - **Backups**: Tägliche Sicherung der Datenbank, dazu manuelle Sicherung,
