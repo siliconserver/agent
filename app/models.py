@@ -194,3 +194,47 @@ class BelastungTeilnahme(Base):
 
     termin = relationship("BelastungTermin", back_populates="teilnahmen")
     member = relationship("Member")
+
+
+# ---------------------------------------------------------------- ToDo ----
+
+TODO_STATUS = {
+    "todo": "ToDo",
+    "in_arbeit": "In Arbeit",
+    "erledigt": "Erledigt",
+}
+
+TODO_KATEGORIEN = [
+    "G26-Nachweis",
+    "Belastungsübung",
+    "UVV-Unterweisung",
+    "AGT-/CSA-Lehrgang",
+    "Einsatz",
+    "Sonstiges",
+]
+
+
+class Todo(Base):
+    """Eingegangener Nachweis o.ä., der noch ins Verwaltungsprogramm muss.
+
+    Erledigte Einträge verschwinden einen Tag nach dem Erledigen aus der
+    Liste (siehe crud.todos_visible); sie bleiben aber in der Datenbank.
+    """
+
+    __tablename__ = "todos"
+
+    id = Column(Integer, primary_key=True)
+    titel = Column(String(255), nullable=False)
+    kategorie = Column(String(64), nullable=True)
+    member_id = Column(Integer, ForeignKey("members.id", ondelete="SET NULL"), nullable=True)
+    bemerkung = Column(Text, nullable=True)
+    status = Column(String(16), nullable=False, default="todo")  # siehe TODO_STATUS
+    erledigt_am = Column(DateTime(timezone=True), nullable=True)
+    erstellt_von = Column(String(64), nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    member = relationship("Member")

@@ -271,3 +271,53 @@ def belastung_termine_upcoming(db: Session, days: int = 3):
         )
         .all()
     )
+
+
+# ------------------------------------------------------------------- ToDo
+
+# so lange bleiben erledigte ToDos noch in der Liste sichtbar
+TODO_ERLEDIGT_SICHTBAR = timedelta(days=1)
+
+
+def todos_visible(db: Session):
+    """Alle offenen ToDos plus die, die vor weniger als einem Tag erledigt wurden.
+
+    Liefert ein Dict status -> Liste, älteste zuerst.
+    """
+    from datetime import datetime, timezone
+
+    grenze = datetime.now(timezone.utc) - TODO_ERLEDIGT_SICHTBAR
+    todos = (
+        db.query(models.Todo)
+        .options(joinedload(models.Todo.member))
+        .filter(
+            (models.Todo.status != "erledigt")
+            | (models.Todo.erledigt_am.is_(None))
+            | (models.Todo.erledigt_am >= grenze)
+        )
+        .order_by(models.Todo.created_at, models.Todo.id)
+        .all()
+    )
+    grouped = {status: [] for status in models.TODO_STATUS}
+    for t in todos:
+        grouped.setdefault(t.status, []).append(t)
+    # Erledigte: zuletzt erledigte oben
+    grouped["erledigt"].sort(key=lambda t: t.erledigt_am or t.created_at, reverse=True)
+    return grouped
+
+
+def todos_open_count(db: Session) -> int:
+    return db.query(models.Todo).filter(models.Todo.status != "erledigt").count()
+
+
+def set_todo_status(todo: "models.Todo", status: str) -> None:
+    """Setzt den Status und pflegt erledigt_am mit."""
+    from datetime import datetime, timezone
+
+    if status not in models.TODO_STATUS:
+        raise ValueError(status)
+    if status == "erledigt" and todo.status != "erledigt":
+        todo.erledigt_am = datetime.now(timezone.utc)
+    elif status != "erledigt":
+        todo.erledigt_am = None
+    todo.status = status

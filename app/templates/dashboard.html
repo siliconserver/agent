@@ -22,6 +22,10 @@
   </div>
 </div>
 
+{% if todos_offen %}
+<div class="alert alert-todo"><a href="/todo">{{ todos_offen }} offene{{ "s" if todos_offen == 1 else "" }} ToDo{{ "" if todos_offen == 1 else "s" }}</a>: Nachweise, die noch eingepflegt werden müssen.</div>
+{% endif %}
+
 <div class="panel-grid">
   <div class="panel">
     <h2>G26 läuft in 3 Monaten ab <span class="count">{{ expiring|length }}</span></h2>

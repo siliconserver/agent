@@ -3,6 +3,11 @@
 Alle relevanten Änderungen an AGENT. Neueste Version oben.
 Diese Datei wird auch auf der Seite „Über AGENT“ angezeigt; die oberste Version ist die App-Version.
 
+## 2.2 (2026-11-21)
+- Neue Seite „ToDo“: eingegangene Nachweise (G26, Belastungsübung, UVV-Unterweisung usw.), die noch ins Verwaltungsprogramm eingepflegt werden müssen, lassen sich mit Art, Geräteträger und Bemerkung erfassen
+- Status „ToDo“, „In Arbeit“ und „Erledigt“ als drei Spalten, Wechsel per Klick; erledigte Einträge verschwinden einen Tag nach dem Erledigen aus der Liste
+- Das Dashboard weist auf offene ToDos hin
+
 ## 2.1 (2026-11-21)
 - Fristregel für UVV-Unterweisung und Belastungsübung vereinheitlicht: „jährlich“ heißt einmal pro Kalenderjahr. Ein Nachweis gilt im Jahr, in dem er absolviert wurde, und im ganzen folgenden Jahr (UVV am 25.10.2026 → gültig bis 31.12.2027). Fehlt ein Datum, ist der AGT untauglich
 - Die Prüfung steckt an einer zentralen Stelle und wird überall gleich verwendet: täglicher Tauglichkeitslauf, Dashboard, Geräteträger-Liste, Berichte, PDF-/CSV-Export und Wochenreport
