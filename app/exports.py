@@ -2,6 +2,8 @@ import csv
 import io
 from datetime import date
 
+import crud
+
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
@@ -21,12 +23,14 @@ CSV_COLUMNS = [
     ("agtlehrgang", "AGT Lehrgang"),
     ("csalehrgang", "CSA Lehrgang"),
     ("lastbelastung", "Letzte Belastungsübung"),
+    ("belastung_gueltig_bis", "Belastungsübung gültig bis"),
     ("nextbelastung", "Nächste Belastungsübung"),
     ("g26_ausstellung", "G26 Ausstellung"),
     ("g26_ablauf", "G26 Ablauf"),
     ("lasteinsatz_agt", "Letzter AGT Einsatz"),
     ("lasteinsatz_csa", "Letzter CSA Einsatz"),
     ("uvv_unterweisung", "UVV Unterweisung"),
+    ("uvv_gueltig_bis", "UVV gültig bis"),
     ("patauglich", "PA tauglich"),
     ("csatauglich", "CSA tauglich"),
     ("agtaktiv", "AGT aktiv"),
@@ -44,12 +48,25 @@ def _fmt(value):
     return str(value)
 
 
+# berechnete Spalten (Kalenderjahr-Frist, siehe crud.calendar_year_valid_until)
+_CSV_COMPUTED = {
+    "belastung_gueltig_bis": lambda m: crud.calendar_year_valid_until(m.lastbelastung),
+    "uvv_gueltig_bis": lambda m: crud.calendar_year_valid_until(m.uvv_unterweisung),
+}
+
+
+def _csv_value(m, field):
+    if field in _CSV_COMPUTED:
+        return _CSV_COMPUTED[field](m)
+    return getattr(m, field)
+
+
 def members_to_csv(members) -> str:
     buf = io.StringIO()
     writer = csv.writer(buf, delimiter=";")
     writer.writerow([label for _, label in CSV_COLUMNS])
     for m in members:
-        writer.writerow([_fmt(getattr(m, field)) for field, _ in CSV_COLUMNS])
+        writer.writerow([_fmt(_csv_value(m, field)) for field, _ in CSV_COLUMNS])
     return buf.getvalue()
 
 
@@ -88,7 +105,7 @@ def _styled_table(rows, col_widths=None):
 
 
 def build_reports_pdf(
-    stats, expiring, expired, missing, tauglich, untauglich, missing_uvv=None
+    stats, expiring, expired, missing, tauglich, untauglich, missing_uvv=None, year_end=None
 ) -> bytes:
     buf = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -151,6 +168,28 @@ def build_reports_pdf(
     )
     if missing_uvv:
         story.append(_styled_table(_member_rows(missing_uvv, "uvv_unterweisung", "Letzte UVV"), col_widths=[6 * cm, 6 * cm, 4 * cm]))
+    else:
+        story.append(Paragraph("Keine.", styles["Normal"]))
+    story.append(Spacer(1, 18))
+
+    year_end = year_end or []
+    today = date.today()
+    story.append(
+        Paragraph(
+            f"UVV oder Belastungsübung läuft zum 31.12.{today.year} ab ({len(year_end)})",
+            styles["Heading2"],
+        )
+    )
+    if year_end:
+        rows = [["Name", "Vorname", "Letzte UVV", "Letzte Belastung"]]
+        for m in year_end:
+            rows.append([
+                m.name,
+                m.vorname,
+                _fmt(m.uvv_unterweisung) if crud.expires_end_of_year(m.uvv_unterweisung, today) else "",
+                _fmt(m.lastbelastung) if crud.expires_end_of_year(m.lastbelastung, today) else "",
+            ])
+        story.append(_styled_table(rows, col_widths=[4.5 * cm, 4.5 * cm, 4 * cm, 4 * cm]))
     else:
         story.append(Paragraph("Keine.", styles["Normal"]))
     story.append(Spacer(1, 18))

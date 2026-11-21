@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from typing import Optional
 
 from sqlalchemy.orm import Session, joinedload
 
@@ -30,24 +31,55 @@ WEEKDAYS = [
 
 
 # --------------------------------------------------------- Tauglichkeit
+#
+# Fristregel für UVV-Unterweisung und Belastungsübung: „jährlich“ heißt
+# einmal pro Kalenderjahr, nicht 12 Monate ab Datum. Ein Nachweis gilt im
+# Jahr, in dem er absolviert wurde, und im ganzen folgenden Kalenderjahr,
+# also bis zum 31.12.(Jahr + 1). Ab dem 01.01. des übernächsten Jahres ist
+# er ungültig. Alle Stellen (Tauglichkeitslauf, Dashboard, Mitgliederliste,
+# Berichte, PDF/CSV-Export, Wochenreport) nutzen ausschließlich die
+# folgenden Hilfsfunktionen.
+
+def is_valid_calendar_year(d: Optional[date], today: Optional[date] = None) -> bool:
+    """True, wenn `d` im aktuellen oder im vorherigen Kalenderjahr liegt.
+    Fehlt das Datum, ist der Nachweis ungültig."""
+    if d is None:
+        return False
+    today = today or date.today()
+    return d.year in (today.year, today.year - 1)
+
+
+def calendar_year_valid_until(d: Optional[date]) -> Optional[date]:
+    """Letzter gültiger Tag eines Nachweises: 31.12.(Jahr + 1)."""
+    if d is None:
+        return None
+    return date(d.year + 1, 12, 31)
+
+
+def expires_end_of_year(d: Optional[date], today: Optional[date] = None) -> bool:
+    """True, wenn der Nachweis noch gilt, aber nur bis zum 31.12. des
+    aktuellen Jahres (er stammt also aus dem Vorjahr)."""
+    today = today or date.today()
+    return is_valid_calendar_year(d, today) and d.year == today.year - 1
+
 
 def compute_patauglich(member: "models.Member", today: date = None) -> bool:
     """
     Ein Geräteträger ist PA-tauglich, wenn:
     - die G26 nicht abgelaufen ist, UND
-    - eine Belastungsübung im aktuellen oder letzten Kalenderjahr stattfand, UND
-    - eine UVV-Unterweisung im aktuellen oder letzten Kalenderjahr stattfand.
+    - die letzte Belastungsübung im aktuellen oder vorherigen Kalenderjahr liegt, UND
+    - die letzte UVV-Unterweisung im aktuellen oder vorherigen Kalenderjahr liegt.
+    Fehlt eines der Daten, ist der Geräteträger untauglich.
     """
     today = today or date.today()
-    valid_years = (today.year, today.year - 1)
 
     if member.g26_ablauf is None or member.g26_ablauf < today:
         return False
 
-    if member.lastbelastung is None or member.lastbelastung.year not in valid_years:
+    if not is_valid_calendar_year(member.lastbelastung, today):
         return False
 
-    if member.uvv_unterweisung is None or member.uvv_unterweisung.year not in valid_years:
+    if not is_valid_calendar_year(member.uvv_unterweisung, today):
         return False
 
     return True
@@ -97,27 +129,30 @@ def members_g26_expired(db: Session):
 
 
 def members_missing_belastung(db: Session):
+    """Aktive Geräteträger ohne gültige Belastungsübung (Kalenderjahr-Regel)."""
     today = date.today()
-    valid_years = (today.year, today.year - 1)
-    result = []
-    for m in db.query(models.Member).filter(models.Member.agtaktiv.is_(True)).all():
-        if m.lastbelastung is None or m.lastbelastung.year not in valid_years:
-            result.append(m)
-    return result
+    return [m for m in members_active(db) if not is_valid_calendar_year(m.lastbelastung, today)]
 
 
 def members_missing_uvv(db: Session):
-    """Aktive Geräteträger ohne UVV-Unterweisung im aktuellen oder letzten Kalenderjahr.
+    """Aktive Geräteträger ohne gültige UVV-Unterweisung (Kalenderjahr-Regel).
 
     Deckungsgleich mit dem Kriterium in compute_patauglich().
     """
     today = date.today()
-    valid_years = (today.year, today.year - 1)
-    result = []
-    for m in db.query(models.Member).filter(models.Member.agtaktiv.is_(True)).all():
-        if m.uvv_unterweisung is None or m.uvv_unterweisung.year not in valid_years:
-            result.append(m)
-    return result
+    return [m for m in members_active(db) if not is_valid_calendar_year(m.uvv_unterweisung, today)]
+
+
+def members_expiring_year_end(db: Session):
+    """Aktive Geräteträger, deren UVV-Unterweisung oder Belastungsübung nur
+    noch bis zum 31.12. des aktuellen Jahres gültig ist (aus dem Vorjahr)."""
+    today = date.today()
+    return [
+        m
+        for m in members_active(db)
+        if expires_end_of_year(m.uvv_unterweisung, today)
+        or expires_end_of_year(m.lastbelastung, today)
+    ]
 
 
 def members_active(db: Session):

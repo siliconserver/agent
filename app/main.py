@@ -107,6 +107,10 @@ CHANGELOG = load_changelog()
 APP_VERSION = CHANGELOG[0]["version"] if CHANGELOG else "unbekannt"
 templates.env.globals["APP_VERSION"] = APP_VERSION
 templates.env.globals["CHANGELOG"] = CHANGELOG
+# Kalenderjahr-Frist für UVV-Unterweisung und Belastungsübung (siehe crud.py)
+templates.env.globals["gueltig_bis"] = crud.calendar_year_valid_until
+templates.env.globals["kj_gueltig"] = crud.is_valid_calendar_year
+templates.env.globals["laeuft_jahresende_ab"] = crud.expires_end_of_year
 
 # Optionale Links im Footer, je Installation über .env gesetzt
 templates.env.globals["IMPRESSUM_URL"] = os.environ.get("IMPRESSUM_URL", "").strip()
@@ -379,6 +383,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
     expired = crud.members_g26_expired(db)
     missing = crud.members_missing_belastung(db)
     missing_uvv = crud.members_missing_uvv(db)
+    year_end = crud.members_expiring_year_end(db)
     tauglich = crud.members_tauglich(db)
     untauglich = crud.members_untauglich(db)
 
@@ -392,6 +397,8 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
             "expired": expired,
             "missing": missing,
             "missing_uvv": missing_uvv,
+            "year_end": year_end,
+            "today": date.today(),
             "tauglich": tauglich,
             "untauglich": untauglich,
         },
@@ -636,6 +643,7 @@ def reports(request: Request, db: Session = Depends(get_db)):
     expired = crud.members_g26_expired(db)
     missing = crud.members_missing_belastung(db)
     missing_uvv = crud.members_missing_uvv(db)
+    year_end = crud.members_expiring_year_end(db)
 
     return templates.TemplateResponse(
         "reports.html",
@@ -646,6 +654,8 @@ def reports(request: Request, db: Session = Depends(get_db)):
             "expired": expired,
             "missing": missing,
             "missing_uvv": missing_uvv,
+            "year_end": year_end,
+            "today": date.today(),
         },
     )
 
@@ -661,11 +671,12 @@ def reports_pdf(request: Request, db: Session = Depends(get_db)):
     expired = crud.members_g26_expired(db)
     missing = crud.members_missing_belastung(db)
     missing_uvv = crud.members_missing_uvv(db)
+    year_end = crud.members_expiring_year_end(db)
     tauglich = crud.members_tauglich(db)
     untauglich = crud.members_untauglich(db)
 
     pdf_bytes = exports.build_reports_pdf(
-        stats, expiring, expired, missing, tauglich, untauglich, missing_uvv
+        stats, expiring, expired, missing, tauglich, untauglich, missing_uvv, year_end
     )
     filename = f"agt_bericht_{datetime.now().strftime('%Y%m%d')}.pdf"
     return StreamingResponse(

@@ -3,6 +3,12 @@
 Alle relevanten Änderungen an AGENT. Neueste Version oben.
 Diese Datei wird auch auf der Seite „Über AGENT“ angezeigt; die oberste Version ist die App-Version.
 
+## 2.1 (2026-11-21)
+- Fristregel für UVV-Unterweisung und Belastungsübung vereinheitlicht: „jährlich“ heißt einmal pro Kalenderjahr. Ein Nachweis gilt im Jahr, in dem er absolviert wurde, und im ganzen folgenden Jahr (UVV am 25.10.2026 → gültig bis 31.12.2027). Fehlt ein Datum, ist der AGT untauglich
+- Die Prüfung steckt an einer zentralen Stelle und wird überall gleich verwendet: täglicher Tauglichkeitslauf, Dashboard, Geräteträger-Liste, Berichte, PDF-/CSV-Export und Wochenreport
+- Geräteträger-Liste, Detailansicht und CSV-Export zeigen „UVV gültig bis“ und „Belastungsübung gültig bis“ (31.12. des Folgejahres), abgelaufene Fristen in Rot
+- Neuer Bericht „Läuft zum 31.12. ab“: aktive AGT, deren UVV-Unterweisung oder Belastungsübung aus dem Vorjahr stammt, im Dashboard, unter Berichte, im PDF-Bericht und im Wochenreport
+
 ## 2.0 (2026-10-24)
 - Erste öffentliche Version in einem eigenen Repository, fertige Docker-Images unter `ghcr.io/siliconserver/agent`
 - Neue Releases und Images entstehen automatisch, sobald eine neue Version in dieser Datei auf `main` landet

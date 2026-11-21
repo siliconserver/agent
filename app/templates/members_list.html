@@ -18,7 +18,9 @@
       <th class="sortable" data-sort="bool">CSA tauglich</th>
       <th class="sortable" data-sort="date">G26 bis</th>
       <th class="sortable" data-sort="date">UVV Unterweisung</th>
+      <th class="sortable" data-sort="date">UVV gültig bis</th>
       <th class="sortable" data-sort="date">Letzte Belastung</th>
+      <th class="sortable" data-sort="date">Belastung gültig bis</th>
       <th></th>
     </tr>
   </thead>
@@ -31,11 +33,15 @@
       <td data-value="{{ 1 if m.csatauglich else 0 }}">{{ "✅" if m.csatauglich else "❌" }}</td>
       <td data-value="{{ m.g26_ablauf.isoformat() if m.g26_ablauf else '' }}">{{ m.g26_ablauf.strftime("%d.%m.%Y") if m.g26_ablauf else "-" }}</td>
       <td data-value="{{ m.uvv_unterweisung.isoformat() if m.uvv_unterweisung else '' }}">{{ m.uvv_unterweisung.strftime("%d.%m.%Y") if m.uvv_unterweisung else "-" }}</td>
+      {% set uvv_bis = gueltig_bis(m.uvv_unterweisung) %}
+      <td data-value="{{ uvv_bis.isoformat() if uvv_bis else '' }}" class="{{ '' if kj_gueltig(m.uvv_unterweisung) else 'nok' }}">{{ uvv_bis.strftime("%d.%m.%Y") if uvv_bis else "-" }}</td>
       <td data-value="{{ m.lastbelastung.isoformat() if m.lastbelastung else '' }}">{{ m.lastbelastung.strftime("%d.%m.%Y") if m.lastbelastung else "-" }}</td>
+      {% set bel_bis = gueltig_bis(m.lastbelastung) %}
+      <td data-value="{{ bel_bis.isoformat() if bel_bis else '' }}" class="{{ '' if kj_gueltig(m.lastbelastung) else 'nok' }}">{{ bel_bis.strftime("%d.%m.%Y") if bel_bis else "-" }}</td>
       <td><a href="/members/{{ m.id }}">Details →</a></td>
     </tr>
     {% else %}
-    <tr><td colspan="7" class="muted">Noch keine Geräteträger angelegt.</td></tr>
+    <tr><td colspan="10" class="muted">Noch keine Geräteträger angelegt.</td></tr>
     {% endfor %}
   </tbody>
 </table>

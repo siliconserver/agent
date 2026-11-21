@@ -1,5 +1,6 @@
 import logging
 import os
+from datetime import date
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -125,6 +126,7 @@ def run_weekly_report():
         expired = crud.members_g26_expired(db)
         missing = crud.members_missing_belastung(db)
         missing_uvv = crud.members_missing_uvv(db)
+        year_end = crud.members_expiring_year_end(db)
 
         active = db.query(models.Member).filter(models.Member.agtaktiv.is_(True)).all()
         tauglich = [m for m in active if m.patauglich]
@@ -172,6 +174,20 @@ def run_weekly_report():
             fmt(m, f" - letzte: {m.uvv_unterweisung.strftime('%d.%m.%Y') if m.uvv_unterweisung else 'nie'}")
             for m in missing_uvv
         ] or ["  -"]
+        lines.append("")
+
+        today = date.today()
+
+        def year_end_info(m):
+            parts = []
+            if crud.expires_end_of_year(m.uvv_unterweisung, today):
+                parts.append(f"UVV {m.uvv_unterweisung.strftime('%d.%m.%Y')}")
+            if crud.expires_end_of_year(m.lastbelastung, today):
+                parts.append(f"Belastung {m.lastbelastung.strftime('%d.%m.%Y')}")
+            return " - " + ", ".join(parts)
+
+        lines.append(f"Läuft zum 31.12.{today.year} ab ({len(year_end)}):")
+        lines += [fmt(m, year_end_info(m)) for m in year_end] or ["  -"]
 
         emailer.send_mail(admin_email, settings.weekly_report_subject, "\n".join(lines))
     except Exception:
