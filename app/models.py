@@ -157,6 +157,8 @@ class Settings(Base):
     mail_import_interval = Column(Integer, nullable=True, default=60)
     # nur Mails dieser Absender auswerten (Adressen oder @domain, kommagetrennt); leer = alle
     mail_import_allowed_senders = Column(Text, nullable=True)
+    # Mails ignorieren, wenn eines dieser Wörter im Betreff oder Text steht (eins pro Zeile)
+    mail_import_ignore_words = Column(Text, nullable=True)
 
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

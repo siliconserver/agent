@@ -22,6 +22,7 @@ from email.utils import parseaddr, parsedate_to_datetime
 from html import unescape
 
 import models
+from emailer import SYSTEM_HEADER, SYSTEM_MARKER
 
 logger = logging.getLogger("mailimport")
 
@@ -207,6 +208,7 @@ def parse_message(raw: bytes):
         "absender_name": name,
         "absender": addr,
         "betreff": str(msg.get("Subject") or "").strip(),
+        "system_header": bool(msg.get(SYSTEM_HEADER)),
         "empfangen_am": empfangen,
         "body": body,
         "anhaenge": anhaenge,
@@ -228,6 +230,37 @@ def _sender_allowed(addr: str, allowed: str) -> bool:
         if addr == e:
             return True
     return False
+
+
+def ignore_words(text: str):
+    """Ignorier-Wörter aus den Einstellungen: ein Eintrag pro Zeile."""
+    return [w.strip() for w in (text or "").splitlines() if w.strip()]
+
+
+def ignore_reason(parsed, words=""):
+    """Liefert den Grund, warum eine Mail ignoriert wird, oder None.
+
+    1. Header von AGENT → die Mail kommt direkt vom System (auch BCC-Kopien).
+    2. Kennzeichen „[AGENT-Systemmail]“ im Text → System-Mail, die jemand
+       weitergeleitet hat. System-Mails haben nie Anhänge; eine Antwort auf eine
+       Erinnerung, an der z.B. die neue G26-Bescheinigung hängt, wird deshalb
+       trotz zitiertem Kennzeichen ausgewertet.
+    3. Eines der Ignorier-Wörter aus den Einstellungen steht im Betreff oder Text.
+    """
+    if parsed.get("system_header"):
+        return "Ignoriert: vom System selbst verschickt"
+    if normalize(SYSTEM_MARKER) in normalize(parsed.get("body")) and not parsed.get("anhaenge"):
+        return "Ignoriert: weitergeleitete System-Mail"
+    betreff, body = normalize(parsed.get("betreff")), normalize(parsed.get("body"))
+    for w in ignore_words(words):
+        nw = normalize(w).strip()
+        if not nw:
+            continue
+        if _word_re(nw).search(betreff):
+            return f"Ignoriert: „{w}“ im Betreff"
+        if _word_re(nw).search(body):
+            return f"Ignoriert: „{w}“ im Text"
+    return None
 
 
 def analyse(parsed, members):
@@ -283,7 +316,7 @@ def analyse(parsed, members):
     return list(todos.values())[:MAX_TODOS_PRO_MAIL]
 
 
-def store_mail(db, parsed, members, abruf_id=None, allowed_senders=""):
+def store_mail(db, parsed, members, abruf_id=None, allowed_senders="", ignore=""):
     """Wertet eine Mail aus, legt ToDos und Protokolleintrag an. Liefert Anzahl ToDos
     oder None, wenn die Mail schon einmal verarbeitet wurde."""
     exists = db.query(models.MailEingang.id).filter(
@@ -306,6 +339,11 @@ def store_mail(db, parsed, members, abruf_id=None, allowed_senders=""):
 
     if not _sender_allowed(parsed["absender"], allowed_senders):
         eingang.ergebnis = "Ignoriert: Absender nicht freigegeben"
+        return 0
+
+    grund = ignore_reason(parsed, ignore)
+    if grund:
+        eingang.ergebnis = grund
         return 0
 
     vorschlaege = analyse(parsed, members)
@@ -384,6 +422,7 @@ def run_import(db):
     try:
         settings = db.query(models.Settings).filter(models.Settings.id == 1).first()
         allowed = settings.mail_import_allowed_senders if settings else ""
+        ignore = settings.mail_import_ignore_words if settings else ""
         members = db.query(models.Member).all()
 
         conn = _connect(cfg)
@@ -399,7 +438,7 @@ def run_import(db):
                 parsed = None
                 try:
                     parsed = parse_message(raw)
-                    anzahl = store_mail(db, parsed, members, abruf.id, allowed)
+                    anzahl = store_mail(db, parsed, members, abruf.id, allowed, ignore)
                     if anzahl is not None:
                         abruf.mails_gelesen += 1
                         abruf.todos_erstellt += anzahl
