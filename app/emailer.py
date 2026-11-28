@@ -3,6 +3,16 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+# Kennzeichen für Mails, die AGENT selbst verschickt. Der Mail-Abruf erkennt
+# daran System-Mails und legt daraus keine ToDos an: direkt über den Header,
+# weitergeleitet über die Fußzeile im Text (Header gehen beim Weiterleiten verloren).
+SYSTEM_HEADER = "X-AGENT-Mail"
+SYSTEM_MARKER = "[AGENT-Systemmail]"
+SYSTEM_FOOTER = (
+    "\n\n-- \n"
+    "Diese E-Mail wurde automatisch von AGENT verschickt. " + SYSTEM_MARKER
+)
+
 
 def _get_config():
     return {
@@ -26,7 +36,8 @@ def send_mail(to: str, subject: str, body: str, bcc: str = None) -> None:
     msg["From"] = cfg["from_addr"]
     msg["To"] = to
     msg["Subject"] = subject
-    msg.attach(MIMEText(body, "plain", "utf-8"))
+    msg[SYSTEM_HEADER] = "1"
+    msg.attach(MIMEText((body or "").rstrip() + SYSTEM_FOOTER, "plain", "utf-8"))
 
     recipients = [to]
     if bcc:

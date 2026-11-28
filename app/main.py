@@ -172,6 +172,7 @@ def on_startup():
     _ensure_column("members", "uvv_unterweisung", "DATE")
     _ensure_column("settings", "mail_import_interval", "INTEGER")
     _ensure_column("settings", "mail_import_allowed_senders", "TEXT")
+    _ensure_column("settings", "mail_import_ignore_words", "TEXT")
     _ensure_column("todos", "mail_id", "INTEGER REFERENCES mail_eingang(id) ON DELETE SET NULL")
     _ensure_column("todos", "pruefen", "BOOLEAN NOT NULL DEFAULT FALSE")
 
@@ -206,6 +207,10 @@ def on_startup():
             settings.belastung_reminder_body = models.DEFAULT_BELASTUNG_REMINDER_BODY
         if settings.mail_import_interval is None:
             settings.mail_import_interval = 60
+        if settings.mail_import_ignore_words is None:
+            # Vorbelegung, damit ältere Wochenreports ohne Kennzeichen auch erkannt werden.
+            # Leer gespeichert ("") bleibt leer.
+            settings.mail_import_ignore_words = settings.weekly_report_subject or models.DEFAULT_WEEKLY_REPORT_SUBJECT
         db.commit()
 
         crud.update_all_tauglichkeit(db)
@@ -1260,6 +1265,7 @@ def settings_mail_import(
     request: Request,
     mail_import_interval: int = Form(0),
     mail_import_allowed_senders: str = Form(""),
+    mail_import_ignore_words: str = Form(""),
     db: Session = Depends(get_db),
 ):
     user = current_user(request, db)
@@ -1270,6 +1276,9 @@ def settings_mail_import(
     settings = crud.get_settings(db)
     settings.mail_import_interval = max(0, min(1440, mail_import_interval))
     settings.mail_import_allowed_senders = mail_import_allowed_senders.strip() or None
+    settings.mail_import_ignore_words = "\n".join(
+        w.strip() for w in mail_import_ignore_words.splitlines() if w.strip()
+    )
     db.commit()
 
     reschedule(app.state.scheduler)

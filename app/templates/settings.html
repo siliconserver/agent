@@ -120,6 +120,10 @@
     <label class="full">Nur Mails von diesen Absendern auswerten (Adressen oder Domains, kommagetrennt, leer = alle)
       <input type="text" name="mail_import_allowed_senders" value="{{ settings.mail_import_allowed_senders or '' }}" placeholder="z.B. @betriebsarzt.de, kommandant@feuerwehr.de">
     </label>
+    <label class="full">Mails ignorieren, wenn eines dieser Wörter im Betreff oder Text steht (ein Eintrag pro Zeile, Groß-/Kleinschreibung egal)
+      <textarea name="mail_import_ignore_words" rows="4" placeholder="z.B. Wöchentlicher Atemschutz-Report&#10;Newsletter">{{ settings.mail_import_ignore_words or '' }}</textarea>
+    </label>
+    <p class="muted full">Mails, die AGENT selbst verschickt (Wochenreport, Erinnerungen, BCC-Kopien), werden immer ignoriert, auch wenn jemand sie an dieses Postfach weiterleitet. Sie tragen dafür unten im Text das Kennzeichen <code>[AGENT-Systemmail]</code>.</p>
     <div class="full actions">
       <button type="submit" class="btn">Abruf-Einstellungen speichern</button>
     </div>

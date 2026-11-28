@@ -3,6 +3,12 @@
 Alle relevanten Änderungen an AGENT. Neueste Version oben.
 Diese Datei wird auch auf der Seite „Über AGENT“ angezeigt; die oberste Version ist die App-Version.
 
+## 2.3.1 (2026-11-28)
+- E-Mail-Abruf: Mails, die AGENT selbst verschickt (Wochenreport, Erinnerungen, BCC-Kopien), werden nicht mehr zu ToDos. Sie tragen dafür eine Kennung im Header und das Kennzeichen „[AGENT-Systemmail]“ unten im Text, sodass sie auch erkannt werden, wenn jemand sie an das Postfach weiterleitet
+- Antworten auf eine Erinnerung, an denen ein Nachweis hängt (z.B. die neue G26-Bescheinigung), werden trotz zitiertem Kennzeichen ausgewertet
+- Einstellungen → E-Mail-Abruf: neue Liste „Mails ignorieren, wenn eines dieser Wörter im Betreff oder Text steht“ (ein Eintrag pro Zeile). Vorbelegt mit dem Betreff des Wochenreports, damit auch ältere Reports ohne Kennzeichen ignoriert werden
+- Das Protokoll zeigt bei ignorierten Mails den Grund
+
 ## 2.3 (2026-11-21)
 - Neu: E-Mail-Abruf. AGENT liest neue Mails aus einem Postfach (IMAP, Zugangsdaten in der `.env`) und legt daraus automatisch ToDos an
 - Ausgewertet werden Betreff, Mailtext und PDF-Anhänge per Stichworten (G26, Belastungsübung, UVV, Lehrgang, Einsatz) und Namensabgleich mit der Geräteträger-Liste, komplett lokal ohne externe Dienste. Mehrere Nachweise in einer Mail werden zu mehreren ToDos
